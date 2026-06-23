@@ -1,0 +1,70 @@
+name: gestion_ecole
+description: Application PWA de gestion des inscriptions scolaires
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State Management
+  flutter_riverpod: ^2.6.1
+
+  # Routing
+  go_router: ^16.0.0
+
+  # Web/SQLite
+  sqlite3: ^3.3.2
+
+  # Drift
+  drift: ^2.33.0
+  drift_flutter: ^0.3.0
+
+  # Utilitaires
+  path: ^1.9.1
+  path_provider: ^2.1.5
+
+  # Formatage dates
+  intl: ^0.20.2
+
+  # Data Tables
+  data_table_2: ^2.6.0
+
+  # Responsive
+  responsive_builder: ^0.7.1
+
+  # SVG
+  flutter_svg: ^2.2.0
+
+  # PDF
+  pdf: ^3.11.3
+  printing: ^5.14.2
+
+  # Excel
+  excel: ^4.0.6
+
+  uuid: ^4.5.1
+  http: ^1.6.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  flutter_lints: ^6.0.0
+
+  # Génération Drift
+  drift_dev: ^2.33.0
+  build_runner: ^2.7.1
+  
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
