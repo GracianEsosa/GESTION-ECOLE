@@ -1,3 +1,4 @@
+// lib/services/paiement_service.dart
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -5,21 +6,33 @@ import '../database/app_database.dart';
 
 class PaiementService {
   final AppDatabase db;
-
   final Uuid _uuid = const Uuid();
 
   PaiementService(this.db);
 
   ////////////////////////////////////////////////////
-  /// AJOUTER (avec génération d'UUID, isSynced=false, updatedAt)
+  /// AJOUTER (avec paramètres nommés)
   ////////////////////////////////////////////////////
 
-  Future<int> ajouterPaiement(PaiementInscriptionsCompanion data) async {
+  Future<int> ajouterPaiement({
+    required String idInscriptionUuid,
+    required String idTarifFraisUuid, // 🔥 remplace idFactureUuid
+    required double montantPaye,
+    required DateTime datePaiement,
+    required String modePaiement,
+    required String motifPaiement,
+  }) async {
     return await db
         .into(db.paiementInscriptions)
         .insert(
-          data.copyWith(
+          PaiementInscriptionsCompanion(
             uuid: Value(_uuid.v4()),
+            idInscriptionUuid: Value(idInscriptionUuid),
+            idTarifFraisUuid: Value(idTarifFraisUuid), // 🔥 nouveau champ
+            montantPaye: Value(montantPaye),
+            datePaiement: Value(datePaiement),
+            modePaiement: Value(modePaiement),
+            motifPaiement: Value(motifPaiement),
             isSynced: const Value(false),
             updatedAt: Value(DateTime.now()),
           ),
@@ -27,7 +40,7 @@ class PaiementService {
   }
 
   ////////////////////////////////////////////////////
-  /// LISTER (tous, ou filtrer si besoin)
+  /// LISTER
   ////////////////////////////////////////////////////
 
   Future<List<PaiementInscription>> getPaiements() async {
@@ -37,7 +50,7 @@ class PaiementService {
   }
 
   ////////////////////////////////////////////////////
-  /// RECHERCHE (optionnel, par inscription ou motif)
+  /// RECHERCHE par inscription
   ////////////////////////////////////////////////////
 
   Future<List<PaiementInscription>> rechercherPaiementsParInscription(
@@ -48,8 +61,10 @@ class PaiementService {
     )..where((t) => t.idInscriptionUuid.equals(idInscriptionUuid))).get();
   }
 
+  // 🔥 Suppression de rechercherPaiementsParFacture (car plus de factures)
+
   ////////////////////////////////////////////////////
-  /// MODIFIER (mise à jour avec isSynced=false, updatedAt)
+  /// MODIFIER (avec PaiementInscription)
   ////////////////////////////////////////////////////
 
   Future<bool> modifierPaiement(PaiementInscription data) async {
@@ -59,7 +74,7 @@ class PaiementService {
   }
 
   ////////////////////////////////////////////////////
-  /// SUPPRESSION PHYSIQUE
+  /// SUPPRIMER
   ////////////////////////////////////////////////////
 
   Future<int> supprimerPaiement(int idPaiement) async {
@@ -95,6 +110,7 @@ class PaiementService {
   Future<void> insertOrUpdateFromServer({
     required String uuid,
     required String idInscriptionUuid,
+    required String idTarifFraisUuid, // 🔥 remplace idFactureUuid
     required double montantPaye,
     required DateTime datePaiement,
     required String modePaiement,
@@ -112,6 +128,7 @@ class PaiementService {
             PaiementInscriptionsCompanion.insert(
               uuid: uuid,
               idInscriptionUuid: idInscriptionUuid,
+              idTarifFraisUuid: idTarifFraisUuid, // 🔥 nouveau
               montantPaye: montantPaye,
               datePaiement: Value(datePaiement),
               modePaiement: modePaiement,
@@ -126,6 +143,7 @@ class PaiementService {
       )..where((t) => t.idPaiement.equals(existing.idPaiement))).write(
         PaiementInscriptionsCompanion(
           idInscriptionUuid: Value(idInscriptionUuid),
+          idTarifFraisUuid: Value(idTarifFraisUuid), // 🔥 nouveau
           montantPaye: Value(montantPaye),
           datePaiement: Value(datePaiement),
           modePaiement: Value(modePaiement),

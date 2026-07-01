@@ -36,6 +36,14 @@ class SyncService {
       db.utilisateurs,
     )..where((t) => t.isSynced.equals(false))).get();
 
+    final unsyncedTypesFrais = await (db.select(
+      db.typesFrais,
+    )..where((t) => t.isSynced.equals(false))).get();
+
+    final unsyncedTarifsFrais = await (db.select(
+      db.tarifsFrais,
+    )..where((t) => t.isSynced.equals(false))).get();
+
     return SyncData(
       annees: unsyncedAnnees,
       options: unsyncedOptions,
@@ -43,10 +51,13 @@ class SyncService {
       inscriptions: unsyncedInscriptions,
       paiements: unsyncedPaiements,
       utilisateurs: unsyncedUtilisateurs,
+      typesFrais: unsyncedTypesFrais,
+      tarifsFrais: unsyncedTarifsFrais,
+      // factures: supprimé
     );
   }
 
-  // Helper pour vérifier si le statut HTTP est OK et si le JSON est valide
+  // Helper pour vérifier si le statut HTTP est OK
   bool _isResponseSuccessful(http.Response response) {
     if (response.statusCode != 200) return false;
     try {
@@ -55,38 +66,26 @@ class SyncService {
           (resData['success'] == false || resData['status'] == 'error')) {
         return false;
       }
-    } catch (_) {
-      // Si ce n'est pas un JSON valide mais que le status est 200, on tolère
-    }
+    } catch (_) {}
     return true;
   }
 
-  // Envoyer les années au serveur
-  Future<bool> _syncAnnees(List<AnneeScolaire> annees) async {
-    if (annees.isEmpty) {
-      print("Aucune année à synchroniser");
-      return true;
-    }
+  // ============================================================
+  // MÉTHODES DE SYNC (CHAQUE TABLE)
+  // ============================================================
 
+  Future<bool> _syncAnnees(List<AnneeScolaire> annees) async {
+    if (annees.isEmpty) return true;
     try {
       final body = {
         'action': 'sync',
         'data': annees.map((e) => e.toJson()).toList(),
       };
-
-      print("=== SYNC ANNEES ===");
-      print("URL : ${ApiConfig.syncAnnees}");
-      print("DONNEES : ${jsonEncode(body)}");
-
       final response = await _client.post(
         Uri.parse(ApiConfig.syncAnnees),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
-
-      print("CODE : ${response.statusCode}");
-      print("REPONSE : ${response.body}");
-
       return _isResponseSuccessful(response);
     } catch (e) {
       print("Erreur sync annees : $e");
@@ -94,32 +93,18 @@ class SyncService {
     }
   }
 
-  // Envoyer les options au serveur
   Future<bool> _syncOptions(List<ScolaireOption> options) async {
-    if (options.isEmpty) {
-      print("Aucune option à synchroniser");
-      return true;
-    }
-
+    if (options.isEmpty) return true;
     try {
       final body = {
         'action': 'sync',
         'data': options.map((e) => e.toJson()).toList(),
       };
-
-      print("=== SYNC OPTIONS ===");
-      print("URL : ${ApiConfig.syncOptions}");
-      print("DONNEES : ${jsonEncode(body)}");
-
       final response = await _client.post(
         Uri.parse(ApiConfig.syncOptions),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
-
-      print("CODE : ${response.statusCode}");
-      print("REPONSE : ${response.body}");
-
       return _isResponseSuccessful(response);
     } catch (e) {
       print("Erreur sync options : $e");
@@ -127,32 +112,18 @@ class SyncService {
     }
   }
 
-  // Envoyer les classes au serveur
   Future<bool> _syncClasses(List<ClassesData> classes) async {
-    if (classes.isEmpty) {
-      print("Aucune classe à synchroniser");
-      return true;
-    }
-
+    if (classes.isEmpty) return true;
     try {
       final body = {
         'action': 'sync',
         'data': classes.map((e) => e.toJson()).toList(),
       };
-
-      print("=== SYNC CLASSES ===");
-      print("URL : ${ApiConfig.syncClasses}");
-      print("DONNEES : ${jsonEncode(body)}");
-
       final response = await _client.post(
         Uri.parse(ApiConfig.syncClasses),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
-
-      print("CODE : ${response.statusCode}");
-      print("REPONSE : ${response.body}");
-
       return _isResponseSuccessful(response);
     } catch (e) {
       print("Erreur sync classes : $e");
@@ -160,32 +131,18 @@ class SyncService {
     }
   }
 
-  // Envoyer les inscriptions au serveur
   Future<bool> _syncInscriptions(List<EleveInscription> inscriptions) async {
-    if (inscriptions.isEmpty) {
-      print("Aucune inscription à synchroniser");
-      return true;
-    }
-
+    if (inscriptions.isEmpty) return true;
     try {
       final body = {
         'action': 'sync',
         'data': inscriptions.map((e) => e.toJson()).toList(),
       };
-
-      print("=== SYNC INSCRIPTIONS ===");
-      print("URL : ${ApiConfig.syncInscriptions}");
-      print("DONNEES : ${jsonEncode(body)}");
-
       final response = await _client.post(
         Uri.parse(ApiConfig.syncInscriptions),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
-
-      print("CODE : ${response.statusCode}");
-      print("REPONSE : ${response.body}");
-
       return _isResponseSuccessful(response);
     } catch (e) {
       print("Erreur sync inscriptions : $e");
@@ -193,32 +150,19 @@ class SyncService {
     }
   }
 
-  // Envoyer les paiements au serveur
+  // ✅ Paiements – modifié : on utilise idTarifFraisUuid, plus idFactureUuid
   Future<bool> _syncPaiements(List<PaiementInscription> paiements) async {
-    if (paiements.isEmpty) {
-      print("Aucun paiement à synchroniser");
-      return true;
-    }
-
+    if (paiements.isEmpty) return true;
     try {
       final body = {
         'action': 'sync',
         'data': paiements.map((e) => e.toJson()).toList(),
       };
-
-      print("=== SYNC PAIEMENTS ===");
-      print("URL : ${ApiConfig.syncPaiements}");
-      print("DONNEES : ${jsonEncode(body)}");
-
       final response = await _client.post(
         Uri.parse(ApiConfig.syncPaiements),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
-
-      print("CODE : ${response.statusCode}");
-      print("REPONSE : ${response.body}");
-
       return _isResponseSuccessful(response);
     } catch (e) {
       print("Erreur sync paiements : $e");
@@ -226,32 +170,18 @@ class SyncService {
     }
   }
 
-  // Envoyer les utilisateurs au serveur
   Future<bool> _syncUtilisateurs(List<Utilisateur> utilisateurs) async {
-    if (utilisateurs.isEmpty) {
-      print("Aucun utilisateur à synchroniser");
-      return true;
-    }
-
+    if (utilisateurs.isEmpty) return true;
     try {
       final body = {
         'action': 'sync',
         'data': utilisateurs.map((e) => e.toJson()).toList(),
       };
-
-      print("=== SYNC UTILISATEURS ===");
-      print("URL : ${ApiConfig.syncUtilisateurs}");
-      print("DONNEES : ${jsonEncode(body)}");
-
       final response = await _client.post(
         Uri.parse(ApiConfig.syncUtilisateurs),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode(body),
       );
-
-      print("CODE : ${response.statusCode}");
-      print("REPONSE : ${response.body}");
-
       return _isResponseSuccessful(response);
     } catch (e) {
       print("Erreur sync utilisateurs : $e");
@@ -259,12 +189,54 @@ class SyncService {
     }
   }
 
-  // Synchronisation complète et granulaire
+  // 🆕 Types de frais
+  Future<bool> _syncTypesFrais(List<TypesFrai> typesFrais) async {
+    if (typesFrais.isEmpty) return true;
+    try {
+      final body = {
+        'action': 'sync',
+        'data': typesFrais.map((e) => e.toJson()).toList(),
+      };
+      final response = await _client.post(
+        Uri.parse(ApiConfig.syncTypesFrais),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+      return _isResponseSuccessful(response);
+    } catch (e) {
+      print("Erreur sync typesFrais : $e");
+      return false;
+    }
+  }
+
+  // 🆕 Tarifs de frais (avec trimestre)
+  Future<bool> _syncTarifsFrais(List<TarifsFrai> tarifsFrais) async {
+    if (tarifsFrais.isEmpty) return true;
+    try {
+      final body = {
+        'action': 'sync',
+        'data': tarifsFrais.map((e) => e.toJson()).toList(),
+      };
+      final response = await _client.post(
+        Uri.parse(ApiConfig.syncTarifsFrais),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+      return _isResponseSuccessful(response);
+    } catch (e) {
+      print("Erreur sync tarifsFrais : $e");
+      return false;
+    }
+  }
+
+  // ============================================================
+  // SYNCHRONISATION COMPLÈTE
+  // ============================================================
+
   Future<bool> syncToServer() async {
     try {
       final unsyncedData = await getUnsyncedData();
 
-      // Synchronisation des années
       final anneesOk = await _syncAnnees(unsyncedData.annees);
       if (anneesOk && unsyncedData.annees.isNotEmpty) {
         await _markAnneesAsSynced(
@@ -272,7 +244,6 @@ class SyncService {
         );
       }
 
-      // Synchronisation des options
       final optionsOk = await _syncOptions(unsyncedData.options);
       if (optionsOk && unsyncedData.options.isNotEmpty) {
         await _markOptionsAsSynced(
@@ -280,7 +251,6 @@ class SyncService {
         );
       }
 
-      // Synchronisation des classes
       final classesOk = await _syncClasses(unsyncedData.classes);
       if (classesOk && unsyncedData.classes.isNotEmpty) {
         await _markClassesAsSynced(
@@ -288,30 +258,38 @@ class SyncService {
         );
       }
 
-      // Synchronisation des inscriptions
       final inscriptionsOk = await _syncInscriptions(unsyncedData.inscriptions);
-
       if (inscriptionsOk && unsyncedData.inscriptions.isNotEmpty) {
         await _markInscriptionsAsSynced(
           unsyncedData.inscriptions.map((e) => e.uuid).toList(),
         );
       }
 
-      // Synchronisation des paiements
       final paiementsOk = await _syncPaiements(unsyncedData.paiements);
-
       if (paiementsOk && unsyncedData.paiements.isNotEmpty) {
         await _markPaiementsAsSynced(
           unsyncedData.paiements.map((e) => e.uuid).toList(),
         );
       }
 
-      // Synchronisation des utilisateurs
       final utilisateursOk = await _syncUtilisateurs(unsyncedData.utilisateurs);
-
       if (utilisateursOk && unsyncedData.utilisateurs.isNotEmpty) {
         await _markUtilisateursAsSynced(
           unsyncedData.utilisateurs.map((e) => e.uuid).toList(),
+        );
+      }
+
+      final typesFraisOk = await _syncTypesFrais(unsyncedData.typesFrais);
+      if (typesFraisOk && unsyncedData.typesFrais.isNotEmpty) {
+        await _markTypesFraisAsSynced(
+          unsyncedData.typesFrais.map((e) => e.uuid).toList(),
+        );
+      }
+
+      final tarifsFraisOk = await _syncTarifsFrais(unsyncedData.tarifsFrais);
+      if (tarifsFraisOk && unsyncedData.tarifsFrais.isNotEmpty) {
+        await _markTarifsFraisAsSynced(
+          unsyncedData.tarifsFrais.map((e) => e.uuid).toList(),
         );
       }
 
@@ -321,9 +299,10 @@ class SyncService {
           classesOk &&
           inscriptionsOk &&
           paiementsOk &&
-          utilisateursOk;
+          utilisateursOk &&
+          typesFraisOk &&
+          tarifsFraisOk;
 
-      // Télécharger les données du serveur vers Drift
       if (allOk) {
         await _downloadServerData();
       }
@@ -335,7 +314,22 @@ class SyncService {
     }
   }
 
-  // APLOAD ANNEES
+  // ============================================================
+  // TÉLÉCHARGEMENT (PULL)
+  // ============================================================
+
+  Future<void> _downloadServerData() async {
+    await _downloadAnnees();
+    await _downloadOptions();
+    await _downloadClasses();
+    await _downloadInscriptions();
+    await _downloadPaiements();
+    await _downloadUtilisateurs();
+    await _downloadTypesFrais();
+    await _downloadTarifsFrais();
+    // _downloadFactures() supprimé
+  }
+
   Future<void> _downloadAnnees() async {
     try {
       final response = await _client.post(
@@ -343,13 +337,9 @@ class SyncService {
         body: jsonEncode({'action': 'download'}),
         headers: {'Content-Type': 'application/json'},
       );
-
       final json = jsonDecode(response.body);
-
       if (json['status'] == 'success') {
-        final List data = json['donnees_serveur'];
-
-        for (final row in data) {
+        for (final row in json['donnees_serveur']) {
           await db
               .into(db.anneeScolaires)
               .insertOnConflictUpdate(
@@ -369,8 +359,6 @@ class SyncService {
     }
   }
 
-  // UPLOAD OPTIONS
-
   Future<void> _downloadOptions() async {
     try {
       final response = await _client.post(
@@ -378,13 +366,9 @@ class SyncService {
         body: jsonEncode({'action': 'download'}),
         headers: {'Content-Type': 'application/json'},
       );
-
       final json = jsonDecode(response.body);
-
       if (json['status'] == 'success') {
-        final List data = json['donnees_serveur'];
-
-        for (final row in data) {
+        for (final row in json['donnees_serveur']) {
           await db
               .into(db.scolaireOptions)
               .insertOnConflictUpdate(
@@ -403,8 +387,6 @@ class SyncService {
     }
   }
 
-  // UPLOAD CLASSES
-
   Future<void> _downloadClasses() async {
     try {
       final response = await _client.post(
@@ -412,13 +394,9 @@ class SyncService {
         body: jsonEncode({'action': 'download'}),
         headers: {'Content-Type': 'application/json'},
       );
-
       final json = jsonDecode(response.body);
-
       if (json['status'] == 'success') {
-        final List data = json['donnees_serveur'];
-
-        for (final row in data) {
+        for (final row in json['donnees_serveur']) {
           await db
               .into(db.classes)
               .insert(
@@ -441,7 +419,6 @@ class SyncService {
     }
   }
 
-  // UPLOAD INCRIPRIONS
   Future<void> _downloadInscriptions() async {
     try {
       final response = await _client.post(
@@ -449,13 +426,9 @@ class SyncService {
         body: jsonEncode({'action': 'download'}),
         headers: {'Content-Type': 'application/json'},
       );
-
       final json = jsonDecode(response.body);
-
       if (json['status'] == 'success') {
-        final List data = json['donnees_serveur'];
-
-        for (final row in data) {
+        for (final row in json['donnees_serveur']) {
           await db
               .into(db.eleveInscriptions)
               .insert(
@@ -485,8 +458,6 @@ class SyncService {
     }
   }
 
-  //UPLOAD PAIEMENTS
-
   Future<void> _downloadPaiements() async {
     try {
       final response = await _client.post(
@@ -494,23 +465,19 @@ class SyncService {
         body: jsonEncode({'action': 'download'}),
         headers: {'Content-Type': 'application/json'},
       );
-
       final json = jsonDecode(response.body);
-
       if (json['status'] == 'success') {
-        final List data = json['donnees_serveur'];
-
-        for (final row in data) {
+        for (final row in json['donnees_serveur']) {
           await db
               .into(db.paiementInscriptions)
               .insertOnConflictUpdate(
                 PaiementInscriptionsCompanion.insert(
                   uuid: row['uuid'],
                   idInscriptionUuid: row['id_inscription_uuid'],
+                  idTarifFraisUuid:
+                      row['id_tarif_frais_uuid'], // ✅ nouveau champ
                   montantPaye: double.parse(row['montant_paye'].toString()),
-                  datePaiement: Value(
-                    DateTime.parse(row['date_paiement'].toString()),
-                  ),
+                  datePaiement: Value(DateTime.parse(row['date_paiement'])),
                   modePaiement: row['mode_paiement'],
                   motifPaiement: row['motif_paiement'],
                   isSynced: const Value(true),
@@ -524,8 +491,6 @@ class SyncService {
     }
   }
 
-  // UPLOAD UTILISATEURS
-
   Future<void> _downloadUtilisateurs() async {
     try {
       final response = await _client.post(
@@ -533,13 +498,9 @@ class SyncService {
         body: jsonEncode({'action': 'download'}),
         headers: {'Content-Type': 'application/json'},
       );
-
       final json = jsonDecode(response.body);
-
       if (json['status'] == 'success') {
-        final List data = json['donnees_serveur'];
-
-        for (final row in data) {
+        for (final row in json['donnees_serveur']) {
           await db
               .into(db.utilisateurs)
               .insert(
@@ -561,16 +522,73 @@ class SyncService {
     }
   }
 
-  Future<void> _downloadServerData() async {
-    await _downloadAnnees();
-    await _downloadOptions();
-    await _downloadClasses();
-    await _downloadInscriptions();
-    await _downloadPaiements();
-    await _downloadUtilisateurs();
+  Future<void> _downloadTypesFrais() async {
+    try {
+      final response = await _client.post(
+        Uri.parse(ApiConfig.syncTypesFrais),
+        body: jsonEncode({'action': 'download'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+      final json = jsonDecode(response.body);
+      if (json['status'] == 'success') {
+        for (final row in json['donnees_serveur']) {
+          await db
+              .into(db.typesFrais)
+              .insertOnConflictUpdate(
+                TypesFraisCompanion.insert(
+                  uuid: row['uuid'],
+                  code: row['code'],
+                  libelle: row['libelle'],
+                  description: Value(row['description']),
+                  periodicite: row['periodicite'] ?? 'mensuel',
+                  actif: row['actif'] ?? true,
+                  isSynced: const Value(true),
+                  updatedAt: Value(DateTime.parse(row['updated_at'])),
+                ),
+              );
+        }
+      }
+    } catch (e) {
+      print('Erreur téléchargement types de frais : $e');
+    }
   }
 
-  // Méthodes de marquage spécifiques par liste d'UUIDs
+  Future<void> _downloadTarifsFrais() async {
+    try {
+      final response = await _client.post(
+        Uri.parse(ApiConfig.syncTarifsFrais),
+        body: jsonEncode({'action': 'download'}),
+        headers: {'Content-Type': 'application/json'},
+      );
+      final json = jsonDecode(response.body);
+      if (json['status'] == 'success') {
+        for (final row in json['donnees_serveur']) {
+          await db
+              .into(db.tarifsFrais)
+              .insert(
+                TarifsFraisCompanion(
+                  uuid: Value(row['uuid']),
+                  idTypeFraisUuid: Value(row['id_type_frais_uuid']),
+                  idAnneeUuid: Value(row['id_annee_uuid']),
+                  idClasseUuid: Value(row['id_classe_uuid']),
+                  trimestre: Value(row['trimestre'] ?? 1),
+                  montant: Value(double.parse(row['montant'].toString())),
+                  isSynced: const Value(true),
+                  updatedAt: Value(DateTime.parse(row['updated_at'])),
+                ),
+                mode: InsertMode.insertOrReplace,
+              );
+        }
+      }
+    } catch (e) {
+      print('Erreur téléchargement tarifs de frais : $e');
+    }
+  }
+
+  // ============================================================
+  // MARQUER COMME SYNCHRONISÉ
+  // ============================================================
+
   Future<void> _markAnneesAsSynced(List<String> uuids) async {
     if (uuids.isEmpty) return;
     await (db.update(db.anneeScolaires)..where((t) => t.uuid.isIn(uuids)))
@@ -609,13 +627,29 @@ class SyncService {
     );
   }
 
-  // Fermer le client HTTP
+  Future<void> _markTypesFraisAsSynced(List<String> uuids) async {
+    if (uuids.isEmpty) return;
+    await (db.update(db.typesFrais)..where((t) => t.uuid.isIn(uuids))).write(
+      const TypesFraisCompanion(isSynced: Value(true)),
+    );
+  }
+
+  Future<void> _markTarifsFraisAsSynced(List<String> uuids) async {
+    if (uuids.isEmpty) return;
+    await (db.update(db.tarifsFrais)..where((t) => t.uuid.isIn(uuids))).write(
+      const TarifsFraisCompanion(isSynced: Value(true)),
+    );
+  }
+
   void dispose() {
     _client.close();
   }
 }
 
-// Classe de données pour la synchronisation
+// ============================================================
+// SYNC DATA (modifié : plus de factures)
+// ============================================================
+
 class SyncData {
   final List<AnneeScolaire> annees;
   final List<ScolaireOption> options;
@@ -623,6 +657,8 @@ class SyncData {
   final List<EleveInscription> inscriptions;
   final List<PaiementInscription> paiements;
   final List<Utilisateur> utilisateurs;
+  final List<TypesFrai> typesFrais;
+  final List<TarifsFrai> tarifsFrais;
 
   SyncData({
     required this.annees,
@@ -631,5 +667,7 @@ class SyncData {
     required this.inscriptions,
     required this.paiements,
     required this.utilisateurs,
+    required this.typesFrais,
+    required this.tarifsFrais,
   });
 }

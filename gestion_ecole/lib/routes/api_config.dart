@@ -7,4 +7,7 @@ class ApiConfig {
   static const String syncInscriptions = "$baseUrl/sync_inscriptions.php";
   static const String syncPaiements = "$baseUrl/sync_paiements.php";
   static const String syncUtilisateurs = "$baseUrl/sync_utilisateurs.php";
+  static const String syncTypesFrais = "$baseUrl/sync_types_frais.php";
+  static const String syncTarifsFrais = "$baseUrl/sync_tarifs_frais.php";
+  static const String syncFactures = "$baseUrl/sync_factures.php";
 }

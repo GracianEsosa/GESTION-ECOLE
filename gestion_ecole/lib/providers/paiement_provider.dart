@@ -4,10 +4,18 @@ import '../database/app_database.dart';
 import '../providers/database_provider.dart';
 import '../services/paiement_service.dart';
 
+////////////////////////////////////////////////////
+/// SERVICE
+////////////////////////////////////////////////////
+
 final paiementServiceProvider = Provider<PaiementService>((ref) {
   final db = ref.watch(appDatabaseProvider);
   return PaiementService(db);
 });
+
+////////////////////////////////////////////////////
+/// LISTE DES PAIEMENTS
+////////////////////////////////////////////////////
 
 final paiementsListProvider = FutureProvider<List<PaiementInscription>>((
   ref,
@@ -16,12 +24,20 @@ final paiementsListProvider = FutureProvider<List<PaiementInscription>>((
   return service.getPaiements();
 });
 
+////////////////////////////////////////////////////
+/// PAIEMENTS NON SYNCHRONISÉS
+////////////////////////////////////////////////////
+
 final unsyncedPaiementsProvider = FutureProvider<List<PaiementInscription>>((
   ref,
 ) async {
   final service = ref.watch(paiementServiceProvider);
   return service.getUnsyncedPaiements();
 });
+
+////////////////////////////////////////////////////
+/// PAIEMENTS PAR INSCRIPTION
+////////////////////////////////////////////////////
 
 final paiementsByInscriptionProvider =
     FutureProvider.family<List<PaiementInscription>, String>((
@@ -32,6 +48,10 @@ final paiementsByInscriptionProvider =
       return service.rechercherPaiementsParInscription(idInscriptionUuid);
     });
 
+////////////////////////////////////////////////////
+/// RAFRAÎCHIR
+////////////////////////////////////////////////////
+
 final refreshPaiementsProvider = Provider<void Function()>((ref) {
   return () {
     ref.invalidate(paiementsListProvider);
@@ -39,16 +59,38 @@ final refreshPaiementsProvider = Provider<void Function()>((ref) {
   };
 });
 
+////////////////////////////////////////////////////
+/// AJOUTER UN PAIEMENT
+////////////////////////////////////////////////////
+
 final addPaiementProvider =
-    FutureProvider.family<void, PaiementInscriptionsCompanion>((
-      ref,
-      data,
-    ) async {
+    FutureProvider.family<
+      void,
+      ({
+        String idInscriptionUuid,
+        String idTarifFraisUuid, // 🔥 remplace idFactureUuid
+        double montantPaye,
+        DateTime datePaiement,
+        String modePaiement,
+        String motifPaiement,
+      })
+    >((ref, data) async {
       final service = ref.watch(paiementServiceProvider);
-      await service.ajouterPaiement(data);
+      await service.ajouterPaiement(
+        idInscriptionUuid: data.idInscriptionUuid,
+        idTarifFraisUuid: data.idTarifFraisUuid,
+        montantPaye: data.montantPaye,
+        datePaiement: data.datePaiement,
+        modePaiement: data.modePaiement,
+        motifPaiement: data.motifPaiement,
+      );
       ref.invalidate(paiementsListProvider);
       ref.invalidate(unsyncedPaiementsProvider);
     });
+
+////////////////////////////////////////////////////
+/// MODIFIER UN PAIEMENT
+////////////////////////////////////////////////////
 
 final updatePaiementProvider = FutureProvider.family<void, PaiementInscription>(
   (ref, paiement) async {
@@ -58,6 +100,10 @@ final updatePaiementProvider = FutureProvider.family<void, PaiementInscription>(
     ref.invalidate(unsyncedPaiementsProvider);
   },
 );
+
+////////////////////////////////////////////////////
+/// SUPPRIMER UN PAIEMENT
+////////////////////////////////////////////////////
 
 final deletePaiementProvider = FutureProvider.family<void, int>((
   ref,
@@ -69,6 +115,10 @@ final deletePaiementProvider = FutureProvider.family<void, int>((
   ref.invalidate(unsyncedPaiementsProvider);
 });
 
+////////////////////////////////////////////////////
+/// MARQUER UN PAIEMENT SYNCHRONISÉ
+////////////////////////////////////////////////////
+
 final markPaiementSyncedProvider = FutureProvider.family<void, int>((
   ref,
   idPaiement,
@@ -79,12 +129,17 @@ final markPaiementSyncedProvider = FutureProvider.family<void, int>((
   ref.invalidate(unsyncedPaiementsProvider);
 });
 
+////////////////////////////////////////////////////
+/// UPSERT DEPUIS LE SERVEUR
+////////////////////////////////////////////////////
+
 final upsertPaiementFromServerProvider =
     FutureProvider.family<
       void,
       ({
         String uuid,
         String idInscriptionUuid,
+        String idTarifFraisUuid, // 🔥 remplace idFactureUuid
         double montantPaye,
         DateTime datePaiement,
         String modePaiement,
@@ -96,6 +151,7 @@ final upsertPaiementFromServerProvider =
       await service.insertOrUpdateFromServer(
         uuid: data.uuid,
         idInscriptionUuid: data.idInscriptionUuid,
+        idTarifFraisUuid: data.idTarifFraisUuid,
         montantPaye: data.montantPaye,
         datePaiement: data.datePaiement,
         modePaiement: data.modePaiement,

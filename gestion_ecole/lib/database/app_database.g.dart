@@ -2078,6 +2078,1146 @@ class EleveInscriptionsCompanion extends UpdateCompanion<EleveInscription> {
   }
 }
 
+class $TypesFraisTable extends TypesFrais
+    with TableInfo<$TypesFraisTable, TypesFrai> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TypesFraisTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idTypeFraisMeta = const VerificationMeta(
+    'idTypeFrais',
+  );
+  @override
+  late final GeneratedColumn<int> idTypeFrais = GeneratedColumn<int>(
+    'id_type_frais',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _codeMeta = const VerificationMeta('code');
+  @override
+  late final GeneratedColumn<String> code = GeneratedColumn<String>(
+    'code',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _libelleMeta = const VerificationMeta(
+    'libelle',
+  );
+  @override
+  late final GeneratedColumn<String> libelle = GeneratedColumn<String>(
+    'libelle',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _descriptionMeta = const VerificationMeta(
+    'description',
+  );
+  @override
+  late final GeneratedColumn<String> description = GeneratedColumn<String>(
+    'description',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _periodiciteMeta = const VerificationMeta(
+    'periodicite',
+  );
+  @override
+  late final GeneratedColumn<String> periodicite = GeneratedColumn<String>(
+    'periodicite',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('mensuel'),
+  );
+  static const VerificationMeta _actifMeta = const VerificationMeta('actif');
+  @override
+  late final GeneratedColumn<bool> actif = GeneratedColumn<bool>(
+    'actif',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("actif" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _isSyncedMeta = const VerificationMeta(
+    'isSynced',
+  );
+  @override
+  late final GeneratedColumn<bool> isSynced = GeneratedColumn<bool>(
+    'is_synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    idTypeFrais,
+    uuid,
+    code,
+    libelle,
+    description,
+    periodicite,
+    actif,
+    isSynced,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'types_frais';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TypesFrai> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id_type_frais')) {
+      context.handle(
+        _idTypeFraisMeta,
+        idTypeFrais.isAcceptableOrUnknown(
+          data['id_type_frais']!,
+          _idTypeFraisMeta,
+        ),
+      );
+    }
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('code')) {
+      context.handle(
+        _codeMeta,
+        code.isAcceptableOrUnknown(data['code']!, _codeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_codeMeta);
+    }
+    if (data.containsKey('libelle')) {
+      context.handle(
+        _libelleMeta,
+        libelle.isAcceptableOrUnknown(data['libelle']!, _libelleMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_libelleMeta);
+    }
+    if (data.containsKey('description')) {
+      context.handle(
+        _descriptionMeta,
+        description.isAcceptableOrUnknown(
+          data['description']!,
+          _descriptionMeta,
+        ),
+      );
+    }
+    if (data.containsKey('periodicite')) {
+      context.handle(
+        _periodiciteMeta,
+        periodicite.isAcceptableOrUnknown(
+          data['periodicite']!,
+          _periodiciteMeta,
+        ),
+      );
+    }
+    if (data.containsKey('actif')) {
+      context.handle(
+        _actifMeta,
+        actif.isAcceptableOrUnknown(data['actif']!, _actifMeta),
+      );
+    }
+    if (data.containsKey('is_synced')) {
+      context.handle(
+        _isSyncedMeta,
+        isSynced.isAcceptableOrUnknown(data['is_synced']!, _isSyncedMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {idTypeFrais};
+  @override
+  TypesFrai map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TypesFrai(
+      idTypeFrais: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id_type_frais'],
+      )!,
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      code: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}code'],
+      )!,
+      libelle: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}libelle'],
+      )!,
+      description: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}description'],
+      ),
+      periodicite: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}periodicite'],
+      )!,
+      actif: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}actif'],
+      )!,
+      isSynced: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_synced'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $TypesFraisTable createAlias(String alias) {
+    return $TypesFraisTable(attachedDatabase, alias);
+  }
+}
+
+class TypesFrai extends DataClass implements Insertable<TypesFrai> {
+  final int idTypeFrais;
+  final String uuid;
+  final String code;
+  final String libelle;
+  final String? description;
+  final String periodicite;
+  final bool actif;
+  final bool isSynced;
+  final DateTime updatedAt;
+  const TypesFrai({
+    required this.idTypeFrais,
+    required this.uuid,
+    required this.code,
+    required this.libelle,
+    this.description,
+    required this.periodicite,
+    required this.actif,
+    required this.isSynced,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id_type_frais'] = Variable<int>(idTypeFrais);
+    map['uuid'] = Variable<String>(uuid);
+    map['code'] = Variable<String>(code);
+    map['libelle'] = Variable<String>(libelle);
+    if (!nullToAbsent || description != null) {
+      map['description'] = Variable<String>(description);
+    }
+    map['periodicite'] = Variable<String>(periodicite);
+    map['actif'] = Variable<bool>(actif);
+    map['is_synced'] = Variable<bool>(isSynced);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  TypesFraisCompanion toCompanion(bool nullToAbsent) {
+    return TypesFraisCompanion(
+      idTypeFrais: Value(idTypeFrais),
+      uuid: Value(uuid),
+      code: Value(code),
+      libelle: Value(libelle),
+      description: description == null && nullToAbsent
+          ? const Value.absent()
+          : Value(description),
+      periodicite: Value(periodicite),
+      actif: Value(actif),
+      isSynced: Value(isSynced),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory TypesFrai.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TypesFrai(
+      idTypeFrais: serializer.fromJson<int>(json['idTypeFrais']),
+      uuid: serializer.fromJson<String>(json['uuid']),
+      code: serializer.fromJson<String>(json['code']),
+      libelle: serializer.fromJson<String>(json['libelle']),
+      description: serializer.fromJson<String?>(json['description']),
+      periodicite: serializer.fromJson<String>(json['periodicite']),
+      actif: serializer.fromJson<bool>(json['actif']),
+      isSynced: serializer.fromJson<bool>(json['isSynced']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'idTypeFrais': serializer.toJson<int>(idTypeFrais),
+      'uuid': serializer.toJson<String>(uuid),
+      'code': serializer.toJson<String>(code),
+      'libelle': serializer.toJson<String>(libelle),
+      'description': serializer.toJson<String?>(description),
+      'periodicite': serializer.toJson<String>(periodicite),
+      'actif': serializer.toJson<bool>(actif),
+      'isSynced': serializer.toJson<bool>(isSynced),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  TypesFrai copyWith({
+    int? idTypeFrais,
+    String? uuid,
+    String? code,
+    String? libelle,
+    Value<String?> description = const Value.absent(),
+    String? periodicite,
+    bool? actif,
+    bool? isSynced,
+    DateTime? updatedAt,
+  }) => TypesFrai(
+    idTypeFrais: idTypeFrais ?? this.idTypeFrais,
+    uuid: uuid ?? this.uuid,
+    code: code ?? this.code,
+    libelle: libelle ?? this.libelle,
+    description: description.present ? description.value : this.description,
+    periodicite: periodicite ?? this.periodicite,
+    actif: actif ?? this.actif,
+    isSynced: isSynced ?? this.isSynced,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  TypesFrai copyWithCompanion(TypesFraisCompanion data) {
+    return TypesFrai(
+      idTypeFrais: data.idTypeFrais.present
+          ? data.idTypeFrais.value
+          : this.idTypeFrais,
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      code: data.code.present ? data.code.value : this.code,
+      libelle: data.libelle.present ? data.libelle.value : this.libelle,
+      description: data.description.present
+          ? data.description.value
+          : this.description,
+      periodicite: data.periodicite.present
+          ? data.periodicite.value
+          : this.periodicite,
+      actif: data.actif.present ? data.actif.value : this.actif,
+      isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TypesFrai(')
+          ..write('idTypeFrais: $idTypeFrais, ')
+          ..write('uuid: $uuid, ')
+          ..write('code: $code, ')
+          ..write('libelle: $libelle, ')
+          ..write('description: $description, ')
+          ..write('periodicite: $periodicite, ')
+          ..write('actif: $actif, ')
+          ..write('isSynced: $isSynced, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    idTypeFrais,
+    uuid,
+    code,
+    libelle,
+    description,
+    periodicite,
+    actif,
+    isSynced,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TypesFrai &&
+          other.idTypeFrais == this.idTypeFrais &&
+          other.uuid == this.uuid &&
+          other.code == this.code &&
+          other.libelle == this.libelle &&
+          other.description == this.description &&
+          other.periodicite == this.periodicite &&
+          other.actif == this.actif &&
+          other.isSynced == this.isSynced &&
+          other.updatedAt == this.updatedAt);
+}
+
+class TypesFraisCompanion extends UpdateCompanion<TypesFrai> {
+  final Value<int> idTypeFrais;
+  final Value<String> uuid;
+  final Value<String> code;
+  final Value<String> libelle;
+  final Value<String?> description;
+  final Value<String> periodicite;
+  final Value<bool> actif;
+  final Value<bool> isSynced;
+  final Value<DateTime> updatedAt;
+  const TypesFraisCompanion({
+    this.idTypeFrais = const Value.absent(),
+    this.uuid = const Value.absent(),
+    this.code = const Value.absent(),
+    this.libelle = const Value.absent(),
+    this.description = const Value.absent(),
+    this.periodicite = const Value.absent(),
+    this.actif = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  TypesFraisCompanion.insert({
+    this.idTypeFrais = const Value.absent(),
+    required String uuid,
+    required String code,
+    required String libelle,
+    this.description = const Value.absent(),
+    this.periodicite = const Value.absent(),
+    this.actif = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : uuid = Value(uuid),
+       code = Value(code),
+       libelle = Value(libelle);
+  static Insertable<TypesFrai> custom({
+    Expression<int>? idTypeFrais,
+    Expression<String>? uuid,
+    Expression<String>? code,
+    Expression<String>? libelle,
+    Expression<String>? description,
+    Expression<String>? periodicite,
+    Expression<bool>? actif,
+    Expression<bool>? isSynced,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (idTypeFrais != null) 'id_type_frais': idTypeFrais,
+      if (uuid != null) 'uuid': uuid,
+      if (code != null) 'code': code,
+      if (libelle != null) 'libelle': libelle,
+      if (description != null) 'description': description,
+      if (periodicite != null) 'periodicite': periodicite,
+      if (actif != null) 'actif': actif,
+      if (isSynced != null) 'is_synced': isSynced,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  TypesFraisCompanion copyWith({
+    Value<int>? idTypeFrais,
+    Value<String>? uuid,
+    Value<String>? code,
+    Value<String>? libelle,
+    Value<String?>? description,
+    Value<String>? periodicite,
+    Value<bool>? actif,
+    Value<bool>? isSynced,
+    Value<DateTime>? updatedAt,
+  }) {
+    return TypesFraisCompanion(
+      idTypeFrais: idTypeFrais ?? this.idTypeFrais,
+      uuid: uuid ?? this.uuid,
+      code: code ?? this.code,
+      libelle: libelle ?? this.libelle,
+      description: description ?? this.description,
+      periodicite: periodicite ?? this.periodicite,
+      actif: actif ?? this.actif,
+      isSynced: isSynced ?? this.isSynced,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (idTypeFrais.present) {
+      map['id_type_frais'] = Variable<int>(idTypeFrais.value);
+    }
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (code.present) {
+      map['code'] = Variable<String>(code.value);
+    }
+    if (libelle.present) {
+      map['libelle'] = Variable<String>(libelle.value);
+    }
+    if (description.present) {
+      map['description'] = Variable<String>(description.value);
+    }
+    if (periodicite.present) {
+      map['periodicite'] = Variable<String>(periodicite.value);
+    }
+    if (actif.present) {
+      map['actif'] = Variable<bool>(actif.value);
+    }
+    if (isSynced.present) {
+      map['is_synced'] = Variable<bool>(isSynced.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TypesFraisCompanion(')
+          ..write('idTypeFrais: $idTypeFrais, ')
+          ..write('uuid: $uuid, ')
+          ..write('code: $code, ')
+          ..write('libelle: $libelle, ')
+          ..write('description: $description, ')
+          ..write('periodicite: $periodicite, ')
+          ..write('actif: $actif, ')
+          ..write('isSynced: $isSynced, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $TarifsFraisTable extends TarifsFrais
+    with TableInfo<$TarifsFraisTable, TarifsFrai> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $TarifsFraisTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idTarifMeta = const VerificationMeta(
+    'idTarif',
+  );
+  @override
+  late final GeneratedColumn<int> idTarif = GeneratedColumn<int>(
+    'id_tarif',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _uuidMeta = const VerificationMeta('uuid');
+  @override
+  late final GeneratedColumn<String> uuid = GeneratedColumn<String>(
+    'uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways('UNIQUE'),
+  );
+  static const VerificationMeta _idTypeFraisUuidMeta = const VerificationMeta(
+    'idTypeFraisUuid',
+  );
+  @override
+  late final GeneratedColumn<String> idTypeFraisUuid = GeneratedColumn<String>(
+    'id_type_frais_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES types_frais (uuid)',
+    ),
+  );
+  static const VerificationMeta _idAnneeUuidMeta = const VerificationMeta(
+    'idAnneeUuid',
+  );
+  @override
+  late final GeneratedColumn<String> idAnneeUuid = GeneratedColumn<String>(
+    'id_annee_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES annee_scolaires (uuid)',
+    ),
+  );
+  static const VerificationMeta _idClasseUuidMeta = const VerificationMeta(
+    'idClasseUuid',
+  );
+  @override
+  late final GeneratedColumn<String> idClasseUuid = GeneratedColumn<String>(
+    'id_classe_uuid',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES classes (uuid)',
+    ),
+  );
+  static const VerificationMeta _trimestreMeta = const VerificationMeta(
+    'trimestre',
+  );
+  @override
+  late final GeneratedColumn<int> trimestre = GeneratedColumn<int>(
+    'trimestre',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(1),
+  );
+  static const VerificationMeta _montantMeta = const VerificationMeta(
+    'montant',
+  );
+  @override
+  late final GeneratedColumn<double> montant = GeneratedColumn<double>(
+    'montant',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _isSyncedMeta = const VerificationMeta(
+    'isSynced',
+  );
+  @override
+  late final GeneratedColumn<bool> isSynced = GeneratedColumn<bool>(
+    'is_synced',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("is_synced" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+    defaultValue: currentDateAndTime,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    idTarif,
+    uuid,
+    idTypeFraisUuid,
+    idAnneeUuid,
+    idClasseUuid,
+    trimestre,
+    montant,
+    isSynced,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'tarifs_frais';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<TarifsFrai> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id_tarif')) {
+      context.handle(
+        _idTarifMeta,
+        idTarif.isAcceptableOrUnknown(data['id_tarif']!, _idTarifMeta),
+      );
+    }
+    if (data.containsKey('uuid')) {
+      context.handle(
+        _uuidMeta,
+        uuid.isAcceptableOrUnknown(data['uuid']!, _uuidMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_uuidMeta);
+    }
+    if (data.containsKey('id_type_frais_uuid')) {
+      context.handle(
+        _idTypeFraisUuidMeta,
+        idTypeFraisUuid.isAcceptableOrUnknown(
+          data['id_type_frais_uuid']!,
+          _idTypeFraisUuidMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_idTypeFraisUuidMeta);
+    }
+    if (data.containsKey('id_annee_uuid')) {
+      context.handle(
+        _idAnneeUuidMeta,
+        idAnneeUuid.isAcceptableOrUnknown(
+          data['id_annee_uuid']!,
+          _idAnneeUuidMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_idAnneeUuidMeta);
+    }
+    if (data.containsKey('id_classe_uuid')) {
+      context.handle(
+        _idClasseUuidMeta,
+        idClasseUuid.isAcceptableOrUnknown(
+          data['id_classe_uuid']!,
+          _idClasseUuidMeta,
+        ),
+      );
+    }
+    if (data.containsKey('trimestre')) {
+      context.handle(
+        _trimestreMeta,
+        trimestre.isAcceptableOrUnknown(data['trimestre']!, _trimestreMeta),
+      );
+    }
+    if (data.containsKey('montant')) {
+      context.handle(
+        _montantMeta,
+        montant.isAcceptableOrUnknown(data['montant']!, _montantMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_montantMeta);
+    }
+    if (data.containsKey('is_synced')) {
+      context.handle(
+        _isSyncedMeta,
+        isSynced.isAcceptableOrUnknown(data['is_synced']!, _isSyncedMeta),
+      );
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {idTarif};
+  @override
+  TarifsFrai map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return TarifsFrai(
+      idTarif: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id_tarif'],
+      )!,
+      uuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}uuid'],
+      )!,
+      idTypeFraisUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id_type_frais_uuid'],
+      )!,
+      idAnneeUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id_annee_uuid'],
+      )!,
+      idClasseUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id_classe_uuid'],
+      ),
+      trimestre: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}trimestre'],
+      )!,
+      montant: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}montant'],
+      )!,
+      isSynced: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}is_synced'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $TarifsFraisTable createAlias(String alias) {
+    return $TarifsFraisTable(attachedDatabase, alias);
+  }
+}
+
+class TarifsFrai extends DataClass implements Insertable<TarifsFrai> {
+  final int idTarif;
+  final String uuid;
+  final String idTypeFraisUuid;
+  final String idAnneeUuid;
+  final String? idClasseUuid;
+  final int trimestre;
+  final double montant;
+  final bool isSynced;
+  final DateTime updatedAt;
+  const TarifsFrai({
+    required this.idTarif,
+    required this.uuid,
+    required this.idTypeFraisUuid,
+    required this.idAnneeUuid,
+    this.idClasseUuid,
+    required this.trimestre,
+    required this.montant,
+    required this.isSynced,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id_tarif'] = Variable<int>(idTarif);
+    map['uuid'] = Variable<String>(uuid);
+    map['id_type_frais_uuid'] = Variable<String>(idTypeFraisUuid);
+    map['id_annee_uuid'] = Variable<String>(idAnneeUuid);
+    if (!nullToAbsent || idClasseUuid != null) {
+      map['id_classe_uuid'] = Variable<String>(idClasseUuid);
+    }
+    map['trimestre'] = Variable<int>(trimestre);
+    map['montant'] = Variable<double>(montant);
+    map['is_synced'] = Variable<bool>(isSynced);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    return map;
+  }
+
+  TarifsFraisCompanion toCompanion(bool nullToAbsent) {
+    return TarifsFraisCompanion(
+      idTarif: Value(idTarif),
+      uuid: Value(uuid),
+      idTypeFraisUuid: Value(idTypeFraisUuid),
+      idAnneeUuid: Value(idAnneeUuid),
+      idClasseUuid: idClasseUuid == null && nullToAbsent
+          ? const Value.absent()
+          : Value(idClasseUuid),
+      trimestre: Value(trimestre),
+      montant: Value(montant),
+      isSynced: Value(isSynced),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory TarifsFrai.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return TarifsFrai(
+      idTarif: serializer.fromJson<int>(json['idTarif']),
+      uuid: serializer.fromJson<String>(json['uuid']),
+      idTypeFraisUuid: serializer.fromJson<String>(json['idTypeFraisUuid']),
+      idAnneeUuid: serializer.fromJson<String>(json['idAnneeUuid']),
+      idClasseUuid: serializer.fromJson<String?>(json['idClasseUuid']),
+      trimestre: serializer.fromJson<int>(json['trimestre']),
+      montant: serializer.fromJson<double>(json['montant']),
+      isSynced: serializer.fromJson<bool>(json['isSynced']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'idTarif': serializer.toJson<int>(idTarif),
+      'uuid': serializer.toJson<String>(uuid),
+      'idTypeFraisUuid': serializer.toJson<String>(idTypeFraisUuid),
+      'idAnneeUuid': serializer.toJson<String>(idAnneeUuid),
+      'idClasseUuid': serializer.toJson<String?>(idClasseUuid),
+      'trimestre': serializer.toJson<int>(trimestre),
+      'montant': serializer.toJson<double>(montant),
+      'isSynced': serializer.toJson<bool>(isSynced),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+    };
+  }
+
+  TarifsFrai copyWith({
+    int? idTarif,
+    String? uuid,
+    String? idTypeFraisUuid,
+    String? idAnneeUuid,
+    Value<String?> idClasseUuid = const Value.absent(),
+    int? trimestre,
+    double? montant,
+    bool? isSynced,
+    DateTime? updatedAt,
+  }) => TarifsFrai(
+    idTarif: idTarif ?? this.idTarif,
+    uuid: uuid ?? this.uuid,
+    idTypeFraisUuid: idTypeFraisUuid ?? this.idTypeFraisUuid,
+    idAnneeUuid: idAnneeUuid ?? this.idAnneeUuid,
+    idClasseUuid: idClasseUuid.present ? idClasseUuid.value : this.idClasseUuid,
+    trimestre: trimestre ?? this.trimestre,
+    montant: montant ?? this.montant,
+    isSynced: isSynced ?? this.isSynced,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  TarifsFrai copyWithCompanion(TarifsFraisCompanion data) {
+    return TarifsFrai(
+      idTarif: data.idTarif.present ? data.idTarif.value : this.idTarif,
+      uuid: data.uuid.present ? data.uuid.value : this.uuid,
+      idTypeFraisUuid: data.idTypeFraisUuid.present
+          ? data.idTypeFraisUuid.value
+          : this.idTypeFraisUuid,
+      idAnneeUuid: data.idAnneeUuid.present
+          ? data.idAnneeUuid.value
+          : this.idAnneeUuid,
+      idClasseUuid: data.idClasseUuid.present
+          ? data.idClasseUuid.value
+          : this.idClasseUuid,
+      trimestre: data.trimestre.present ? data.trimestre.value : this.trimestre,
+      montant: data.montant.present ? data.montant.value : this.montant,
+      isSynced: data.isSynced.present ? data.isSynced.value : this.isSynced,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TarifsFrai(')
+          ..write('idTarif: $idTarif, ')
+          ..write('uuid: $uuid, ')
+          ..write('idTypeFraisUuid: $idTypeFraisUuid, ')
+          ..write('idAnneeUuid: $idAnneeUuid, ')
+          ..write('idClasseUuid: $idClasseUuid, ')
+          ..write('trimestre: $trimestre, ')
+          ..write('montant: $montant, ')
+          ..write('isSynced: $isSynced, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    idTarif,
+    uuid,
+    idTypeFraisUuid,
+    idAnneeUuid,
+    idClasseUuid,
+    trimestre,
+    montant,
+    isSynced,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is TarifsFrai &&
+          other.idTarif == this.idTarif &&
+          other.uuid == this.uuid &&
+          other.idTypeFraisUuid == this.idTypeFraisUuid &&
+          other.idAnneeUuid == this.idAnneeUuid &&
+          other.idClasseUuid == this.idClasseUuid &&
+          other.trimestre == this.trimestre &&
+          other.montant == this.montant &&
+          other.isSynced == this.isSynced &&
+          other.updatedAt == this.updatedAt);
+}
+
+class TarifsFraisCompanion extends UpdateCompanion<TarifsFrai> {
+  final Value<int> idTarif;
+  final Value<String> uuid;
+  final Value<String> idTypeFraisUuid;
+  final Value<String> idAnneeUuid;
+  final Value<String?> idClasseUuid;
+  final Value<int> trimestre;
+  final Value<double> montant;
+  final Value<bool> isSynced;
+  final Value<DateTime> updatedAt;
+  const TarifsFraisCompanion({
+    this.idTarif = const Value.absent(),
+    this.uuid = const Value.absent(),
+    this.idTypeFraisUuid = const Value.absent(),
+    this.idAnneeUuid = const Value.absent(),
+    this.idClasseUuid = const Value.absent(),
+    this.trimestre = const Value.absent(),
+    this.montant = const Value.absent(),
+    this.isSynced = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  TarifsFraisCompanion.insert({
+    this.idTarif = const Value.absent(),
+    required String uuid,
+    required String idTypeFraisUuid,
+    required String idAnneeUuid,
+    this.idClasseUuid = const Value.absent(),
+    this.trimestre = const Value.absent(),
+    required double montant,
+    this.isSynced = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  }) : uuid = Value(uuid),
+       idTypeFraisUuid = Value(idTypeFraisUuid),
+       idAnneeUuid = Value(idAnneeUuid),
+       montant = Value(montant);
+  static Insertable<TarifsFrai> custom({
+    Expression<int>? idTarif,
+    Expression<String>? uuid,
+    Expression<String>? idTypeFraisUuid,
+    Expression<String>? idAnneeUuid,
+    Expression<String>? idClasseUuid,
+    Expression<int>? trimestre,
+    Expression<double>? montant,
+    Expression<bool>? isSynced,
+    Expression<DateTime>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (idTarif != null) 'id_tarif': idTarif,
+      if (uuid != null) 'uuid': uuid,
+      if (idTypeFraisUuid != null) 'id_type_frais_uuid': idTypeFraisUuid,
+      if (idAnneeUuid != null) 'id_annee_uuid': idAnneeUuid,
+      if (idClasseUuid != null) 'id_classe_uuid': idClasseUuid,
+      if (trimestre != null) 'trimestre': trimestre,
+      if (montant != null) 'montant': montant,
+      if (isSynced != null) 'is_synced': isSynced,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  TarifsFraisCompanion copyWith({
+    Value<int>? idTarif,
+    Value<String>? uuid,
+    Value<String>? idTypeFraisUuid,
+    Value<String>? idAnneeUuid,
+    Value<String?>? idClasseUuid,
+    Value<int>? trimestre,
+    Value<double>? montant,
+    Value<bool>? isSynced,
+    Value<DateTime>? updatedAt,
+  }) {
+    return TarifsFraisCompanion(
+      idTarif: idTarif ?? this.idTarif,
+      uuid: uuid ?? this.uuid,
+      idTypeFraisUuid: idTypeFraisUuid ?? this.idTypeFraisUuid,
+      idAnneeUuid: idAnneeUuid ?? this.idAnneeUuid,
+      idClasseUuid: idClasseUuid ?? this.idClasseUuid,
+      trimestre: trimestre ?? this.trimestre,
+      montant: montant ?? this.montant,
+      isSynced: isSynced ?? this.isSynced,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (idTarif.present) {
+      map['id_tarif'] = Variable<int>(idTarif.value);
+    }
+    if (uuid.present) {
+      map['uuid'] = Variable<String>(uuid.value);
+    }
+    if (idTypeFraisUuid.present) {
+      map['id_type_frais_uuid'] = Variable<String>(idTypeFraisUuid.value);
+    }
+    if (idAnneeUuid.present) {
+      map['id_annee_uuid'] = Variable<String>(idAnneeUuid.value);
+    }
+    if (idClasseUuid.present) {
+      map['id_classe_uuid'] = Variable<String>(idClasseUuid.value);
+    }
+    if (trimestre.present) {
+      map['trimestre'] = Variable<int>(trimestre.value);
+    }
+    if (montant.present) {
+      map['montant'] = Variable<double>(montant.value);
+    }
+    if (isSynced.present) {
+      map['is_synced'] = Variable<bool>(isSynced.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('TarifsFraisCompanion(')
+          ..write('idTarif: $idTarif, ')
+          ..write('uuid: $uuid, ')
+          ..write('idTypeFraisUuid: $idTypeFraisUuid, ')
+          ..write('idAnneeUuid: $idAnneeUuid, ')
+          ..write('idClasseUuid: $idClasseUuid, ')
+          ..write('trimestre: $trimestre, ')
+          ..write('montant: $montant, ')
+          ..write('isSynced: $isSynced, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $PaiementInscriptionsTable extends PaiementInscriptions
     with TableInfo<$PaiementInscriptionsTable, PaiementInscription> {
   @override
@@ -2124,6 +3264,20 @@ class $PaiementInscriptionsTable extends PaiementInscriptions
           'REFERENCES eleve_inscriptions (uuid)',
         ),
       );
+  static const VerificationMeta _idTarifFraisUuidMeta = const VerificationMeta(
+    'idTarifFraisUuid',
+  );
+  @override
+  late final GeneratedColumn<String> idTarifFraisUuid = GeneratedColumn<String>(
+    'id_tarif_frais_uuid',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES tarifs_frais (uuid)',
+    ),
+  );
   static const VerificationMeta _montantPayeMeta = const VerificationMeta(
     'montantPaye',
   );
@@ -2201,6 +3355,7 @@ class $PaiementInscriptionsTable extends PaiementInscriptions
     idPaiement,
     uuid,
     idInscriptionUuid,
+    idTarifFraisUuid,
     montantPaye,
     datePaiement,
     modePaiement,
@@ -2244,6 +3399,17 @@ class $PaiementInscriptionsTable extends PaiementInscriptions
       );
     } else if (isInserting) {
       context.missing(_idInscriptionUuidMeta);
+    }
+    if (data.containsKey('id_tarif_frais_uuid')) {
+      context.handle(
+        _idTarifFraisUuidMeta,
+        idTarifFraisUuid.isAcceptableOrUnknown(
+          data['id_tarif_frais_uuid']!,
+          _idTarifFraisUuidMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_idTarifFraisUuidMeta);
     }
     if (data.containsKey('montant_paye')) {
       context.handle(
@@ -2320,6 +3486,10 @@ class $PaiementInscriptionsTable extends PaiementInscriptions
         DriftSqlType.string,
         data['${effectivePrefix}id_inscription_uuid'],
       )!,
+      idTarifFraisUuid: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id_tarif_frais_uuid'],
+      )!,
       montantPaye: attachedDatabase.typeMapping.read(
         DriftSqlType.double,
         data['${effectivePrefix}montant_paye'],
@@ -2358,6 +3528,7 @@ class PaiementInscription extends DataClass
   final int idPaiement;
   final String uuid;
   final String idInscriptionUuid;
+  final String idTarifFraisUuid;
   final double montantPaye;
   final DateTime datePaiement;
   final String modePaiement;
@@ -2368,6 +3539,7 @@ class PaiementInscription extends DataClass
     required this.idPaiement,
     required this.uuid,
     required this.idInscriptionUuid,
+    required this.idTarifFraisUuid,
     required this.montantPaye,
     required this.datePaiement,
     required this.modePaiement,
@@ -2381,6 +3553,7 @@ class PaiementInscription extends DataClass
     map['id_paiement'] = Variable<int>(idPaiement);
     map['uuid'] = Variable<String>(uuid);
     map['id_inscription_uuid'] = Variable<String>(idInscriptionUuid);
+    map['id_tarif_frais_uuid'] = Variable<String>(idTarifFraisUuid);
     map['montant_paye'] = Variable<double>(montantPaye);
     map['date_paiement'] = Variable<DateTime>(datePaiement);
     map['mode_paiement'] = Variable<String>(modePaiement);
@@ -2395,6 +3568,7 @@ class PaiementInscription extends DataClass
       idPaiement: Value(idPaiement),
       uuid: Value(uuid),
       idInscriptionUuid: Value(idInscriptionUuid),
+      idTarifFraisUuid: Value(idTarifFraisUuid),
       montantPaye: Value(montantPaye),
       datePaiement: Value(datePaiement),
       modePaiement: Value(modePaiement),
@@ -2413,6 +3587,7 @@ class PaiementInscription extends DataClass
       idPaiement: serializer.fromJson<int>(json['idPaiement']),
       uuid: serializer.fromJson<String>(json['uuid']),
       idInscriptionUuid: serializer.fromJson<String>(json['idInscriptionUuid']),
+      idTarifFraisUuid: serializer.fromJson<String>(json['idTarifFraisUuid']),
       montantPaye: serializer.fromJson<double>(json['montantPaye']),
       datePaiement: serializer.fromJson<DateTime>(json['datePaiement']),
       modePaiement: serializer.fromJson<String>(json['modePaiement']),
@@ -2428,6 +3603,7 @@ class PaiementInscription extends DataClass
       'idPaiement': serializer.toJson<int>(idPaiement),
       'uuid': serializer.toJson<String>(uuid),
       'idInscriptionUuid': serializer.toJson<String>(idInscriptionUuid),
+      'idTarifFraisUuid': serializer.toJson<String>(idTarifFraisUuid),
       'montantPaye': serializer.toJson<double>(montantPaye),
       'datePaiement': serializer.toJson<DateTime>(datePaiement),
       'modePaiement': serializer.toJson<String>(modePaiement),
@@ -2441,6 +3617,7 @@ class PaiementInscription extends DataClass
     int? idPaiement,
     String? uuid,
     String? idInscriptionUuid,
+    String? idTarifFraisUuid,
     double? montantPaye,
     DateTime? datePaiement,
     String? modePaiement,
@@ -2451,6 +3628,7 @@ class PaiementInscription extends DataClass
     idPaiement: idPaiement ?? this.idPaiement,
     uuid: uuid ?? this.uuid,
     idInscriptionUuid: idInscriptionUuid ?? this.idInscriptionUuid,
+    idTarifFraisUuid: idTarifFraisUuid ?? this.idTarifFraisUuid,
     montantPaye: montantPaye ?? this.montantPaye,
     datePaiement: datePaiement ?? this.datePaiement,
     modePaiement: modePaiement ?? this.modePaiement,
@@ -2467,6 +3645,9 @@ class PaiementInscription extends DataClass
       idInscriptionUuid: data.idInscriptionUuid.present
           ? data.idInscriptionUuid.value
           : this.idInscriptionUuid,
+      idTarifFraisUuid: data.idTarifFraisUuid.present
+          ? data.idTarifFraisUuid.value
+          : this.idTarifFraisUuid,
       montantPaye: data.montantPaye.present
           ? data.montantPaye.value
           : this.montantPaye,
@@ -2490,6 +3671,7 @@ class PaiementInscription extends DataClass
           ..write('idPaiement: $idPaiement, ')
           ..write('uuid: $uuid, ')
           ..write('idInscriptionUuid: $idInscriptionUuid, ')
+          ..write('idTarifFraisUuid: $idTarifFraisUuid, ')
           ..write('montantPaye: $montantPaye, ')
           ..write('datePaiement: $datePaiement, ')
           ..write('modePaiement: $modePaiement, ')
@@ -2505,6 +3687,7 @@ class PaiementInscription extends DataClass
     idPaiement,
     uuid,
     idInscriptionUuid,
+    idTarifFraisUuid,
     montantPaye,
     datePaiement,
     modePaiement,
@@ -2519,6 +3702,7 @@ class PaiementInscription extends DataClass
           other.idPaiement == this.idPaiement &&
           other.uuid == this.uuid &&
           other.idInscriptionUuid == this.idInscriptionUuid &&
+          other.idTarifFraisUuid == this.idTarifFraisUuid &&
           other.montantPaye == this.montantPaye &&
           other.datePaiement == this.datePaiement &&
           other.modePaiement == this.modePaiement &&
@@ -2532,6 +3716,7 @@ class PaiementInscriptionsCompanion
   final Value<int> idPaiement;
   final Value<String> uuid;
   final Value<String> idInscriptionUuid;
+  final Value<String> idTarifFraisUuid;
   final Value<double> montantPaye;
   final Value<DateTime> datePaiement;
   final Value<String> modePaiement;
@@ -2542,6 +3727,7 @@ class PaiementInscriptionsCompanion
     this.idPaiement = const Value.absent(),
     this.uuid = const Value.absent(),
     this.idInscriptionUuid = const Value.absent(),
+    this.idTarifFraisUuid = const Value.absent(),
     this.montantPaye = const Value.absent(),
     this.datePaiement = const Value.absent(),
     this.modePaiement = const Value.absent(),
@@ -2553,6 +3739,7 @@ class PaiementInscriptionsCompanion
     this.idPaiement = const Value.absent(),
     required String uuid,
     required String idInscriptionUuid,
+    required String idTarifFraisUuid,
     required double montantPaye,
     this.datePaiement = const Value.absent(),
     required String modePaiement,
@@ -2561,6 +3748,7 @@ class PaiementInscriptionsCompanion
     this.updatedAt = const Value.absent(),
   }) : uuid = Value(uuid),
        idInscriptionUuid = Value(idInscriptionUuid),
+       idTarifFraisUuid = Value(idTarifFraisUuid),
        montantPaye = Value(montantPaye),
        modePaiement = Value(modePaiement),
        motifPaiement = Value(motifPaiement);
@@ -2568,6 +3756,7 @@ class PaiementInscriptionsCompanion
     Expression<int>? idPaiement,
     Expression<String>? uuid,
     Expression<String>? idInscriptionUuid,
+    Expression<String>? idTarifFraisUuid,
     Expression<double>? montantPaye,
     Expression<DateTime>? datePaiement,
     Expression<String>? modePaiement,
@@ -2579,6 +3768,7 @@ class PaiementInscriptionsCompanion
       if (idPaiement != null) 'id_paiement': idPaiement,
       if (uuid != null) 'uuid': uuid,
       if (idInscriptionUuid != null) 'id_inscription_uuid': idInscriptionUuid,
+      if (idTarifFraisUuid != null) 'id_tarif_frais_uuid': idTarifFraisUuid,
       if (montantPaye != null) 'montant_paye': montantPaye,
       if (datePaiement != null) 'date_paiement': datePaiement,
       if (modePaiement != null) 'mode_paiement': modePaiement,
@@ -2592,6 +3782,7 @@ class PaiementInscriptionsCompanion
     Value<int>? idPaiement,
     Value<String>? uuid,
     Value<String>? idInscriptionUuid,
+    Value<String>? idTarifFraisUuid,
     Value<double>? montantPaye,
     Value<DateTime>? datePaiement,
     Value<String>? modePaiement,
@@ -2603,6 +3794,7 @@ class PaiementInscriptionsCompanion
       idPaiement: idPaiement ?? this.idPaiement,
       uuid: uuid ?? this.uuid,
       idInscriptionUuid: idInscriptionUuid ?? this.idInscriptionUuid,
+      idTarifFraisUuid: idTarifFraisUuid ?? this.idTarifFraisUuid,
       montantPaye: montantPaye ?? this.montantPaye,
       datePaiement: datePaiement ?? this.datePaiement,
       modePaiement: modePaiement ?? this.modePaiement,
@@ -2623,6 +3815,9 @@ class PaiementInscriptionsCompanion
     }
     if (idInscriptionUuid.present) {
       map['id_inscription_uuid'] = Variable<String>(idInscriptionUuid.value);
+    }
+    if (idTarifFraisUuid.present) {
+      map['id_tarif_frais_uuid'] = Variable<String>(idTarifFraisUuid.value);
     }
     if (montantPaye.present) {
       map['montant_paye'] = Variable<double>(montantPaye.value);
@@ -2651,6 +3846,7 @@ class PaiementInscriptionsCompanion
           ..write('idPaiement: $idPaiement, ')
           ..write('uuid: $uuid, ')
           ..write('idInscriptionUuid: $idInscriptionUuid, ')
+          ..write('idTarifFraisUuid: $idTarifFraisUuid, ')
           ..write('montantPaye: $montantPaye, ')
           ..write('datePaiement: $datePaiement, ')
           ..write('modePaiement: $modePaiement, ')
@@ -3198,6 +4394,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ClassesTable classes = $ClassesTable(this);
   late final $EleveInscriptionsTable eleveInscriptions =
       $EleveInscriptionsTable(this);
+  late final $TypesFraisTable typesFrais = $TypesFraisTable(this);
+  late final $TarifsFraisTable tarifsFrais = $TarifsFraisTable(this);
   late final $PaiementInscriptionsTable paiementInscriptions =
       $PaiementInscriptionsTable(this);
   late final $UtilisateursTable utilisateurs = $UtilisateursTable(this);
@@ -3210,6 +4408,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     scolaireOptions,
     classes,
     eleveInscriptions,
+    typesFrais,
+    tarifsFrais,
     paiementInscriptions,
     utilisateurs,
   ];
@@ -3248,10 +4448,7 @@ final class $$AnneeScolairesTableReferences
   _eleveInscriptionsRefsTable(_$AppDatabase db) =>
       MultiTypedResultKey.fromTable(
         db.eleveInscriptions,
-        aliasName: $_aliasNameGenerator(
-          db.anneeScolaires.uuid,
-          db.eleveInscriptions.idAnneeUuid,
-        ),
+        aliasName: 'annee_scolaires__uuid__eleve_inscriptions__id_annee_uuid',
       );
 
   $$EleveInscriptionsTableProcessedTableManager get eleveInscriptionsRefs {
@@ -3266,6 +4463,24 @@ final class $$AnneeScolairesTableReferences
     final cache = $_typedResult.readTableOrNull(
       _eleveInscriptionsRefsTable($_db),
     );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$TarifsFraisTable, List<TarifsFrai>>
+  _tarifsFraisRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.tarifsFrais,
+    aliasName: 'annee_scolaires__uuid__tarifs_frais__id_annee_uuid',
+  );
+
+  $$TarifsFraisTableProcessedTableManager get tarifsFraisRefs {
+    final manager = $$TarifsFraisTableTableManager($_db, $_db.tarifsFrais)
+        .filter(
+          (f) => f.idAnneeUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(_tarifsFraisRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -3332,6 +4547,31 @@ class $$AnneeScolairesTableFilterComposer
           }) => $$EleveInscriptionsTableFilterComposer(
             $db: $db,
             $table: $db.eleveInscriptions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> tarifsFraisRefs(
+    Expression<bool> Function($$TarifsFraisTableFilterComposer f) f,
+  ) {
+    final $$TarifsFraisTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.tarifsFrais,
+      getReferencedColumn: (t) => t.idAnneeUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TarifsFraisTableFilterComposer(
+            $db: $db,
+            $table: $db.tarifsFrais,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -3444,6 +4684,31 @@ class $$AnneeScolairesTableAnnotationComposer
         );
     return f(composer);
   }
+
+  Expression<T> tarifsFraisRefs<T extends Object>(
+    Expression<T> Function($$TarifsFraisTableAnnotationComposer a) f,
+  ) {
+    final $$TarifsFraisTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.tarifsFrais,
+      getReferencedColumn: (t) => t.idAnneeUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TarifsFraisTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tarifsFrais,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$AnneeScolairesTableTableManager
@@ -3459,7 +4724,10 @@ class $$AnneeScolairesTableTableManager
           $$AnneeScolairesTableUpdateCompanionBuilder,
           (AnneeScolaire, $$AnneeScolairesTableReferences),
           AnneeScolaire,
-          PrefetchHooks Function({bool eleveInscriptionsRefs})
+          PrefetchHooks Function({
+            bool eleveInscriptionsRefs,
+            bool tarifsFraisRefs,
+          })
         > {
   $$AnneeScolairesTableTableManager(
     _$AppDatabase db,
@@ -3518,40 +4786,63 @@ class $$AnneeScolairesTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({eleveInscriptionsRefs = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [
-                if (eleveInscriptionsRefs) db.eleveInscriptions,
-              ],
-              addJoins: null,
-              getPrefetchedDataCallback: (items) async {
-                return [
-                  if (eleveInscriptionsRefs)
-                    await $_getPrefetchedData<
-                      AnneeScolaire,
-                      $AnneeScolairesTable,
-                      EleveInscription
-                    >(
-                      currentTable: table,
-                      referencedTable: $$AnneeScolairesTableReferences
-                          ._eleveInscriptionsRefsTable(db),
-                      managerFromTypedResult: (p0) =>
-                          $$AnneeScolairesTableReferences(
-                            db,
-                            table,
-                            p0,
-                          ).eleveInscriptionsRefs,
-                      referencedItemsForCurrentItem: (item, referencedItems) =>
-                          referencedItems.where(
-                            (e) => e.idAnneeUuid == item.uuid,
-                          ),
-                      typedResults: items,
-                    ),
-                ];
+          prefetchHooksCallback:
+              ({eleveInscriptionsRefs = false, tarifsFraisRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (eleveInscriptionsRefs) db.eleveInscriptions,
+                    if (tarifsFraisRefs) db.tarifsFrais,
+                  ],
+                  addJoins: null,
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (eleveInscriptionsRefs)
+                        await $_getPrefetchedData<
+                          AnneeScolaire,
+                          $AnneeScolairesTable,
+                          EleveInscription
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AnneeScolairesTableReferences
+                              ._eleveInscriptionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AnneeScolairesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).eleveInscriptionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.idAnneeUuid == item.uuid,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (tarifsFraisRefs)
+                        await $_getPrefetchedData<
+                          AnneeScolaire,
+                          $AnneeScolairesTable,
+                          TarifsFrai
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AnneeScolairesTableReferences
+                              ._tarifsFraisRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AnneeScolairesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).tarifsFraisRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.idAnneeUuid == item.uuid,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -3568,7 +4859,7 @@ typedef $$AnneeScolairesTableProcessedTableManager =
       $$AnneeScolairesTableUpdateCompanionBuilder,
       (AnneeScolaire, $$AnneeScolairesTableReferences),
       AnneeScolaire,
-      PrefetchHooks Function({bool eleveInscriptionsRefs})
+      PrefetchHooks Function({bool eleveInscriptionsRefs, bool tarifsFraisRefs})
     >;
 typedef $$ScolaireOptionsTableCreateCompanionBuilder =
     ScolaireOptionsCompanion Function({
@@ -3601,10 +4892,7 @@ final class $$ScolaireOptionsTableReferences
   static MultiTypedResultKey<$ClassesTable, List<ClassesData>>
   _classesRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
     db.classes,
-    aliasName: $_aliasNameGenerator(
-      db.scolaireOptions.uuid,
-      db.classes.idOptionUuid,
-    ),
+    aliasName: 'scolaire_options__uuid__classes__id_option_uuid',
   );
 
   $$ClassesTableProcessedTableManager get classesRefs {
@@ -3922,10 +5210,9 @@ final class $$ClassesTableReferences
     extends BaseReferences<_$AppDatabase, $ClassesTable, ClassesData> {
   $$ClassesTableReferences(super.$_db, super.$_table, super.$_typedResult);
 
-  static $ScolaireOptionsTable _idOptionUuidTable(_$AppDatabase db) =>
-      db.scolaireOptions.createAlias(
-        $_aliasNameGenerator(db.classes.idOptionUuid, db.scolaireOptions.uuid),
-      );
+  static $ScolaireOptionsTable _idOptionUuidTable(_$AppDatabase db) => db
+      .scolaireOptions
+      .createAlias('classes__id_option_uuid__scolaire_options__uuid');
 
   $$ScolaireOptionsTableProcessedTableManager? get idOptionUuid {
     final $_column = $_itemColumn<String>('id_option_uuid');
@@ -3945,10 +5232,7 @@ final class $$ClassesTableReferences
   _eleveInscriptionsRefsTable(_$AppDatabase db) =>
       MultiTypedResultKey.fromTable(
         db.eleveInscriptions,
-        aliasName: $_aliasNameGenerator(
-          db.classes.uuid,
-          db.eleveInscriptions.idClasseUuid,
-        ),
+        aliasName: 'classes__uuid__eleve_inscriptions__id_classe_uuid',
       );
 
   $$EleveInscriptionsTableProcessedTableManager get eleveInscriptionsRefs {
@@ -3963,6 +5247,24 @@ final class $$ClassesTableReferences
     final cache = $_typedResult.readTableOrNull(
       _eleveInscriptionsRefsTable($_db),
     );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$TarifsFraisTable, List<TarifsFrai>>
+  _tarifsFraisRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.tarifsFrais,
+    aliasName: 'classes__uuid__tarifs_frais__id_classe_uuid',
+  );
+
+  $$TarifsFraisTableProcessedTableManager get tarifsFraisRefs {
+    final manager = $$TarifsFraisTableTableManager($_db, $_db.tarifsFrais)
+        .filter(
+          (f) => f.idClasseUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(_tarifsFraisRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -4047,6 +5349,31 @@ class $$ClassesTableFilterComposer
           }) => $$EleveInscriptionsTableFilterComposer(
             $db: $db,
             $table: $db.eleveInscriptions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> tarifsFraisRefs(
+    Expression<bool> Function($$TarifsFraisTableFilterComposer f) f,
+  ) {
+    final $$TarifsFraisTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.tarifsFrais,
+      getReferencedColumn: (t) => t.idClasseUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TarifsFraisTableFilterComposer(
+            $db: $db,
+            $table: $db.tarifsFrais,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -4197,6 +5524,31 @@ class $$ClassesTableAnnotationComposer
         );
     return f(composer);
   }
+
+  Expression<T> tarifsFraisRefs<T extends Object>(
+    Expression<T> Function($$TarifsFraisTableAnnotationComposer a) f,
+  ) {
+    final $$TarifsFraisTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.tarifsFrais,
+      getReferencedColumn: (t) => t.idClasseUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TarifsFraisTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tarifsFrais,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$ClassesTableTableManager
@@ -4215,6 +5567,7 @@ class $$ClassesTableTableManager
           PrefetchHooks Function({
             bool idOptionUuid,
             bool eleveInscriptionsRefs,
+            bool tarifsFraisRefs,
           })
         > {
   $$ClassesTableTableManager(_$AppDatabase db, $ClassesTable table)
@@ -4273,11 +5626,16 @@ class $$ClassesTableTableManager
               )
               .toList(),
           prefetchHooksCallback:
-              ({idOptionUuid = false, eleveInscriptionsRefs = false}) {
+              ({
+                idOptionUuid = false,
+                eleveInscriptionsRefs = false,
+                tarifsFraisRefs = false,
+              }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
                     if (eleveInscriptionsRefs) db.eleveInscriptions,
+                    if (tarifsFraisRefs) db.tarifsFrais,
                   ],
                   addJoins:
                       <
@@ -4334,6 +5692,27 @@ class $$ClassesTableTableManager
                               ),
                           typedResults: items,
                         ),
+                      if (tarifsFraisRefs)
+                        await $_getPrefetchedData<
+                          ClassesData,
+                          $ClassesTable,
+                          TarifsFrai
+                        >(
+                          currentTable: table,
+                          referencedTable: $$ClassesTableReferences
+                              ._tarifsFraisRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$ClassesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).tarifsFraisRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.idClasseUuid == item.uuid,
+                              ),
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -4354,7 +5733,11 @@ typedef $$ClassesTableProcessedTableManager =
       $$ClassesTableUpdateCompanionBuilder,
       (ClassesData, $$ClassesTableReferences),
       ClassesData,
-      PrefetchHooks Function({bool idOptionUuid, bool eleveInscriptionsRefs})
+      PrefetchHooks Function({
+        bool idOptionUuid,
+        bool eleveInscriptionsRefs,
+        bool tarifsFraisRefs,
+      })
     >;
 typedef $$EleveInscriptionsTableCreateCompanionBuilder =
     EleveInscriptionsCompanion Function({
@@ -4400,13 +5783,9 @@ final class $$EleveInscriptionsTableReferences
     super.$_typedResult,
   );
 
-  static $AnneeScolairesTable _idAnneeUuidTable(_$AppDatabase db) =>
-      db.anneeScolaires.createAlias(
-        $_aliasNameGenerator(
-          db.eleveInscriptions.idAnneeUuid,
-          db.anneeScolaires.uuid,
-        ),
-      );
+  static $AnneeScolairesTable _idAnneeUuidTable(_$AppDatabase db) => db
+      .anneeScolaires
+      .createAlias('eleve_inscriptions__id_annee_uuid__annee_scolaires__uuid');
 
   $$AnneeScolairesTableProcessedTableManager get idAnneeUuid {
     final $_column = $_itemColumn<String>('id_annee_uuid')!;
@@ -4422,13 +5801,8 @@ final class $$EleveInscriptionsTableReferences
     );
   }
 
-  static $ClassesTable _idClasseUuidTable(_$AppDatabase db) =>
-      db.classes.createAlias(
-        $_aliasNameGenerator(
-          db.eleveInscriptions.idClasseUuid,
-          db.classes.uuid,
-        ),
-      );
+  static $ClassesTable _idClasseUuidTable(_$AppDatabase db) => db.classes
+      .createAlias('eleve_inscriptions__id_classe_uuid__classes__uuid');
 
   $$ClassesTableProcessedTableManager get idClasseUuid {
     final $_column = $_itemColumn<String>('id_classe_uuid')!;
@@ -4448,14 +5822,13 @@ final class $$EleveInscriptionsTableReferences
     $PaiementInscriptionsTable,
     List<PaiementInscription>
   >
-  _paiementInscriptionsRefsTable(_$AppDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.paiementInscriptions,
-        aliasName: $_aliasNameGenerator(
-          db.eleveInscriptions.uuid,
-          db.paiementInscriptions.idInscriptionUuid,
-        ),
-      );
+  _paiementInscriptionsRefsTable(
+    _$AppDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.paiementInscriptions,
+    aliasName:
+        'eleve_inscriptions__uuid__paiement_inscriptions__id_inscription_uuid',
+  );
 
   $$PaiementInscriptionsTableProcessedTableManager
   get paiementInscriptionsRefs {
@@ -5044,11 +6417,1080 @@ typedef $$EleveInscriptionsTableProcessedTableManager =
         bool paiementInscriptionsRefs,
       })
     >;
+typedef $$TypesFraisTableCreateCompanionBuilder =
+    TypesFraisCompanion Function({
+      Value<int> idTypeFrais,
+      required String uuid,
+      required String code,
+      required String libelle,
+      Value<String?> description,
+      Value<String> periodicite,
+      Value<bool> actif,
+      Value<bool> isSynced,
+      Value<DateTime> updatedAt,
+    });
+typedef $$TypesFraisTableUpdateCompanionBuilder =
+    TypesFraisCompanion Function({
+      Value<int> idTypeFrais,
+      Value<String> uuid,
+      Value<String> code,
+      Value<String> libelle,
+      Value<String?> description,
+      Value<String> periodicite,
+      Value<bool> actif,
+      Value<bool> isSynced,
+      Value<DateTime> updatedAt,
+    });
+
+final class $$TypesFraisTableReferences
+    extends BaseReferences<_$AppDatabase, $TypesFraisTable, TypesFrai> {
+  $$TypesFraisTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static MultiTypedResultKey<$TarifsFraisTable, List<TarifsFrai>>
+  _tarifsFraisRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.tarifsFrais,
+    aliasName: 'types_frais__uuid__tarifs_frais__id_type_frais_uuid',
+  );
+
+  $$TarifsFraisTableProcessedTableManager get tarifsFraisRefs {
+    final manager = $$TarifsFraisTableTableManager($_db, $_db.tarifsFrais)
+        .filter(
+          (f) =>
+              f.idTypeFraisUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(_tarifsFraisRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$TypesFraisTableFilterComposer
+    extends Composer<_$AppDatabase, $TypesFraisTable> {
+  $$TypesFraisTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get idTypeFrais => $composableBuilder(
+    column: $table.idTypeFrais,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get libelle => $composableBuilder(
+    column: $table.libelle,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get periodicite => $composableBuilder(
+    column: $table.periodicite,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get actif => $composableBuilder(
+    column: $table.actif,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  Expression<bool> tarifsFraisRefs(
+    Expression<bool> Function($$TarifsFraisTableFilterComposer f) f,
+  ) {
+    final $$TarifsFraisTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.tarifsFrais,
+      getReferencedColumn: (t) => t.idTypeFraisUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TarifsFraisTableFilterComposer(
+            $db: $db,
+            $table: $db.tarifsFrais,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$TypesFraisTableOrderingComposer
+    extends Composer<_$AppDatabase, $TypesFraisTable> {
+  $$TypesFraisTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get idTypeFrais => $composableBuilder(
+    column: $table.idTypeFrais,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get code => $composableBuilder(
+    column: $table.code,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get libelle => $composableBuilder(
+    column: $table.libelle,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get periodicite => $composableBuilder(
+    column: $table.periodicite,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get actif => $composableBuilder(
+    column: $table.actif,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$TypesFraisTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TypesFraisTable> {
+  $$TypesFraisTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get idTypeFrais => $composableBuilder(
+    column: $table.idTypeFrais,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<String> get code =>
+      $composableBuilder(column: $table.code, builder: (column) => column);
+
+  GeneratedColumn<String> get libelle =>
+      $composableBuilder(column: $table.libelle, builder: (column) => column);
+
+  GeneratedColumn<String> get description => $composableBuilder(
+    column: $table.description,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get periodicite => $composableBuilder(
+    column: $table.periodicite,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get actif =>
+      $composableBuilder(column: $table.actif, builder: (column) => column);
+
+  GeneratedColumn<bool> get isSynced =>
+      $composableBuilder(column: $table.isSynced, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  Expression<T> tarifsFraisRefs<T extends Object>(
+    Expression<T> Function($$TarifsFraisTableAnnotationComposer a) f,
+  ) {
+    final $$TarifsFraisTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.tarifsFrais,
+      getReferencedColumn: (t) => t.idTypeFraisUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TarifsFraisTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tarifsFrais,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$TypesFraisTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TypesFraisTable,
+          TypesFrai,
+          $$TypesFraisTableFilterComposer,
+          $$TypesFraisTableOrderingComposer,
+          $$TypesFraisTableAnnotationComposer,
+          $$TypesFraisTableCreateCompanionBuilder,
+          $$TypesFraisTableUpdateCompanionBuilder,
+          (TypesFrai, $$TypesFraisTableReferences),
+          TypesFrai,
+          PrefetchHooks Function({bool tarifsFraisRefs})
+        > {
+  $$TypesFraisTableTableManager(_$AppDatabase db, $TypesFraisTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TypesFraisTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TypesFraisTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TypesFraisTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> idTypeFrais = const Value.absent(),
+                Value<String> uuid = const Value.absent(),
+                Value<String> code = const Value.absent(),
+                Value<String> libelle = const Value.absent(),
+                Value<String?> description = const Value.absent(),
+                Value<String> periodicite = const Value.absent(),
+                Value<bool> actif = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => TypesFraisCompanion(
+                idTypeFrais: idTypeFrais,
+                uuid: uuid,
+                code: code,
+                libelle: libelle,
+                description: description,
+                periodicite: periodicite,
+                actif: actif,
+                isSynced: isSynced,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> idTypeFrais = const Value.absent(),
+                required String uuid,
+                required String code,
+                required String libelle,
+                Value<String?> description = const Value.absent(),
+                Value<String> periodicite = const Value.absent(),
+                Value<bool> actif = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => TypesFraisCompanion.insert(
+                idTypeFrais: idTypeFrais,
+                uuid: uuid,
+                code: code,
+                libelle: libelle,
+                description: description,
+                periodicite: periodicite,
+                actif: actif,
+                isSynced: isSynced,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$TypesFraisTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({tarifsFraisRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (tarifsFraisRefs) db.tarifsFrais],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (tarifsFraisRefs)
+                    await $_getPrefetchedData<
+                      TypesFrai,
+                      $TypesFraisTable,
+                      TarifsFrai
+                    >(
+                      currentTable: table,
+                      referencedTable: $$TypesFraisTableReferences
+                          ._tarifsFraisRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$TypesFraisTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).tarifsFraisRefs,
+                      referencedItemsForCurrentItem: (item, referencedItems) =>
+                          referencedItems.where(
+                            (e) => e.idTypeFraisUuid == item.uuid,
+                          ),
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$TypesFraisTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TypesFraisTable,
+      TypesFrai,
+      $$TypesFraisTableFilterComposer,
+      $$TypesFraisTableOrderingComposer,
+      $$TypesFraisTableAnnotationComposer,
+      $$TypesFraisTableCreateCompanionBuilder,
+      $$TypesFraisTableUpdateCompanionBuilder,
+      (TypesFrai, $$TypesFraisTableReferences),
+      TypesFrai,
+      PrefetchHooks Function({bool tarifsFraisRefs})
+    >;
+typedef $$TarifsFraisTableCreateCompanionBuilder =
+    TarifsFraisCompanion Function({
+      Value<int> idTarif,
+      required String uuid,
+      required String idTypeFraisUuid,
+      required String idAnneeUuid,
+      Value<String?> idClasseUuid,
+      Value<int> trimestre,
+      required double montant,
+      Value<bool> isSynced,
+      Value<DateTime> updatedAt,
+    });
+typedef $$TarifsFraisTableUpdateCompanionBuilder =
+    TarifsFraisCompanion Function({
+      Value<int> idTarif,
+      Value<String> uuid,
+      Value<String> idTypeFraisUuid,
+      Value<String> idAnneeUuid,
+      Value<String?> idClasseUuid,
+      Value<int> trimestre,
+      Value<double> montant,
+      Value<bool> isSynced,
+      Value<DateTime> updatedAt,
+    });
+
+final class $$TarifsFraisTableReferences
+    extends BaseReferences<_$AppDatabase, $TarifsFraisTable, TarifsFrai> {
+  $$TarifsFraisTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $TypesFraisTable _idTypeFraisUuidTable(_$AppDatabase db) => db
+      .typesFrais
+      .createAlias('tarifs_frais__id_type_frais_uuid__types_frais__uuid');
+
+  $$TypesFraisTableProcessedTableManager get idTypeFraisUuid {
+    final $_column = $_itemColumn<String>('id_type_frais_uuid')!;
+
+    final manager = $$TypesFraisTableTableManager(
+      $_db,
+      $_db.typesFrais,
+    ).filter((f) => f.uuid.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_idTypeFraisUuidTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $AnneeScolairesTable _idAnneeUuidTable(_$AppDatabase db) => db
+      .anneeScolaires
+      .createAlias('tarifs_frais__id_annee_uuid__annee_scolaires__uuid');
+
+  $$AnneeScolairesTableProcessedTableManager get idAnneeUuid {
+    final $_column = $_itemColumn<String>('id_annee_uuid')!;
+
+    final manager = $$AnneeScolairesTableTableManager(
+      $_db,
+      $_db.anneeScolaires,
+    ).filter((f) => f.uuid.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_idAnneeUuidTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $ClassesTable _idClasseUuidTable(_$AppDatabase db) =>
+      db.classes.createAlias('tarifs_frais__id_classe_uuid__classes__uuid');
+
+  $$ClassesTableProcessedTableManager? get idClasseUuid {
+    final $_column = $_itemColumn<String>('id_classe_uuid');
+    if ($_column == null) return null;
+    final manager = $$ClassesTableTableManager(
+      $_db,
+      $_db.classes,
+    ).filter((f) => f.uuid.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_idClasseUuidTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $PaiementInscriptionsTable,
+    List<PaiementInscription>
+  >
+  _paiementInscriptionsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.paiementInscriptions,
+        aliasName:
+            'tarifs_frais__uuid__paiement_inscriptions__id_tarif_frais_uuid',
+      );
+
+  $$PaiementInscriptionsTableProcessedTableManager
+  get paiementInscriptionsRefs {
+    final manager =
+        $$PaiementInscriptionsTableTableManager(
+          $_db,
+          $_db.paiementInscriptions,
+        ).filter(
+          (f) =>
+              f.idTarifFraisUuid.uuid.sqlEquals($_itemColumn<String>('uuid')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _paiementInscriptionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$TarifsFraisTableFilterComposer
+    extends Composer<_$AppDatabase, $TarifsFraisTable> {
+  $$TarifsFraisTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get idTarif => $composableBuilder(
+    column: $table.idTarif,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get trimestre => $composableBuilder(
+    column: $table.trimestre,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get montant => $composableBuilder(
+    column: $table.montant,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$TypesFraisTableFilterComposer get idTypeFraisUuid {
+    final $$TypesFraisTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.idTypeFraisUuid,
+      referencedTable: $db.typesFrais,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TypesFraisTableFilterComposer(
+            $db: $db,
+            $table: $db.typesFrais,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AnneeScolairesTableFilterComposer get idAnneeUuid {
+    final $$AnneeScolairesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.idAnneeUuid,
+      referencedTable: $db.anneeScolaires,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnneeScolairesTableFilterComposer(
+            $db: $db,
+            $table: $db.anneeScolaires,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ClassesTableFilterComposer get idClasseUuid {
+    final $$ClassesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.idClasseUuid,
+      referencedTable: $db.classes,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ClassesTableFilterComposer(
+            $db: $db,
+            $table: $db.classes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> paiementInscriptionsRefs(
+    Expression<bool> Function($$PaiementInscriptionsTableFilterComposer f) f,
+  ) {
+    final $$PaiementInscriptionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.uuid,
+      referencedTable: $db.paiementInscriptions,
+      getReferencedColumn: (t) => t.idTarifFraisUuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PaiementInscriptionsTableFilterComposer(
+            $db: $db,
+            $table: $db.paiementInscriptions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$TarifsFraisTableOrderingComposer
+    extends Composer<_$AppDatabase, $TarifsFraisTable> {
+  $$TarifsFraisTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get idTarif => $composableBuilder(
+    column: $table.idTarif,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get uuid => $composableBuilder(
+    column: $table.uuid,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get trimestre => $composableBuilder(
+    column: $table.trimestre,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get montant => $composableBuilder(
+    column: $table.montant,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get isSynced => $composableBuilder(
+    column: $table.isSynced,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$TypesFraisTableOrderingComposer get idTypeFraisUuid {
+    final $$TypesFraisTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.idTypeFraisUuid,
+      referencedTable: $db.typesFrais,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TypesFraisTableOrderingComposer(
+            $db: $db,
+            $table: $db.typesFrais,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AnneeScolairesTableOrderingComposer get idAnneeUuid {
+    final $$AnneeScolairesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.idAnneeUuid,
+      referencedTable: $db.anneeScolaires,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnneeScolairesTableOrderingComposer(
+            $db: $db,
+            $table: $db.anneeScolaires,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ClassesTableOrderingComposer get idClasseUuid {
+    final $$ClassesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.idClasseUuid,
+      referencedTable: $db.classes,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ClassesTableOrderingComposer(
+            $db: $db,
+            $table: $db.classes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$TarifsFraisTableAnnotationComposer
+    extends Composer<_$AppDatabase, $TarifsFraisTable> {
+  $$TarifsFraisTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get idTarif =>
+      $composableBuilder(column: $table.idTarif, builder: (column) => column);
+
+  GeneratedColumn<String> get uuid =>
+      $composableBuilder(column: $table.uuid, builder: (column) => column);
+
+  GeneratedColumn<int> get trimestre =>
+      $composableBuilder(column: $table.trimestre, builder: (column) => column);
+
+  GeneratedColumn<double> get montant =>
+      $composableBuilder(column: $table.montant, builder: (column) => column);
+
+  GeneratedColumn<bool> get isSynced =>
+      $composableBuilder(column: $table.isSynced, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$TypesFraisTableAnnotationComposer get idTypeFraisUuid {
+    final $$TypesFraisTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.idTypeFraisUuid,
+      referencedTable: $db.typesFrais,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TypesFraisTableAnnotationComposer(
+            $db: $db,
+            $table: $db.typesFrais,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AnneeScolairesTableAnnotationComposer get idAnneeUuid {
+    final $$AnneeScolairesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.idAnneeUuid,
+      referencedTable: $db.anneeScolaires,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AnneeScolairesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.anneeScolaires,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$ClassesTableAnnotationComposer get idClasseUuid {
+    final $$ClassesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.idClasseUuid,
+      referencedTable: $db.classes,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ClassesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.classes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> paiementInscriptionsRefs<T extends Object>(
+    Expression<T> Function($$PaiementInscriptionsTableAnnotationComposer a) f,
+  ) {
+    final $$PaiementInscriptionsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.uuid,
+          referencedTable: $db.paiementInscriptions,
+          getReferencedColumn: (t) => t.idTarifFraisUuid,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$PaiementInscriptionsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.paiementInscriptions,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$TarifsFraisTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $TarifsFraisTable,
+          TarifsFrai,
+          $$TarifsFraisTableFilterComposer,
+          $$TarifsFraisTableOrderingComposer,
+          $$TarifsFraisTableAnnotationComposer,
+          $$TarifsFraisTableCreateCompanionBuilder,
+          $$TarifsFraisTableUpdateCompanionBuilder,
+          (TarifsFrai, $$TarifsFraisTableReferences),
+          TarifsFrai,
+          PrefetchHooks Function({
+            bool idTypeFraisUuid,
+            bool idAnneeUuid,
+            bool idClasseUuid,
+            bool paiementInscriptionsRefs,
+          })
+        > {
+  $$TarifsFraisTableTableManager(_$AppDatabase db, $TarifsFraisTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$TarifsFraisTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$TarifsFraisTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$TarifsFraisTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> idTarif = const Value.absent(),
+                Value<String> uuid = const Value.absent(),
+                Value<String> idTypeFraisUuid = const Value.absent(),
+                Value<String> idAnneeUuid = const Value.absent(),
+                Value<String?> idClasseUuid = const Value.absent(),
+                Value<int> trimestre = const Value.absent(),
+                Value<double> montant = const Value.absent(),
+                Value<bool> isSynced = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => TarifsFraisCompanion(
+                idTarif: idTarif,
+                uuid: uuid,
+                idTypeFraisUuid: idTypeFraisUuid,
+                idAnneeUuid: idAnneeUuid,
+                idClasseUuid: idClasseUuid,
+                trimestre: trimestre,
+                montant: montant,
+                isSynced: isSynced,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> idTarif = const Value.absent(),
+                required String uuid,
+                required String idTypeFraisUuid,
+                required String idAnneeUuid,
+                Value<String?> idClasseUuid = const Value.absent(),
+                Value<int> trimestre = const Value.absent(),
+                required double montant,
+                Value<bool> isSynced = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+              }) => TarifsFraisCompanion.insert(
+                idTarif: idTarif,
+                uuid: uuid,
+                idTypeFraisUuid: idTypeFraisUuid,
+                idAnneeUuid: idAnneeUuid,
+                idClasseUuid: idClasseUuid,
+                trimestre: trimestre,
+                montant: montant,
+                isSynced: isSynced,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$TarifsFraisTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                idTypeFraisUuid = false,
+                idAnneeUuid = false,
+                idClasseUuid = false,
+                paiementInscriptionsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (paiementInscriptionsRefs) db.paiementInscriptions,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (idTypeFraisUuid) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.idTypeFraisUuid,
+                                    referencedTable:
+                                        $$TarifsFraisTableReferences
+                                            ._idTypeFraisUuidTable(db),
+                                    referencedColumn:
+                                        $$TarifsFraisTableReferences
+                                            ._idTypeFraisUuidTable(db)
+                                            .uuid,
+                                  )
+                                  as T;
+                        }
+                        if (idAnneeUuid) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.idAnneeUuid,
+                                    referencedTable:
+                                        $$TarifsFraisTableReferences
+                                            ._idAnneeUuidTable(db),
+                                    referencedColumn:
+                                        $$TarifsFraisTableReferences
+                                            ._idAnneeUuidTable(db)
+                                            .uuid,
+                                  )
+                                  as T;
+                        }
+                        if (idClasseUuid) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.idClasseUuid,
+                                    referencedTable:
+                                        $$TarifsFraisTableReferences
+                                            ._idClasseUuidTable(db),
+                                    referencedColumn:
+                                        $$TarifsFraisTableReferences
+                                            ._idClasseUuidTable(db)
+                                            .uuid,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (paiementInscriptionsRefs)
+                        await $_getPrefetchedData<
+                          TarifsFrai,
+                          $TarifsFraisTable,
+                          PaiementInscription
+                        >(
+                          currentTable: table,
+                          referencedTable: $$TarifsFraisTableReferences
+                              ._paiementInscriptionsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$TarifsFraisTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).paiementInscriptionsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.idTarifFraisUuid == item.uuid,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$TarifsFraisTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $TarifsFraisTable,
+      TarifsFrai,
+      $$TarifsFraisTableFilterComposer,
+      $$TarifsFraisTableOrderingComposer,
+      $$TarifsFraisTableAnnotationComposer,
+      $$TarifsFraisTableCreateCompanionBuilder,
+      $$TarifsFraisTableUpdateCompanionBuilder,
+      (TarifsFrai, $$TarifsFraisTableReferences),
+      TarifsFrai,
+      PrefetchHooks Function({
+        bool idTypeFraisUuid,
+        bool idAnneeUuid,
+        bool idClasseUuid,
+        bool paiementInscriptionsRefs,
+      })
+    >;
 typedef $$PaiementInscriptionsTableCreateCompanionBuilder =
     PaiementInscriptionsCompanion Function({
       Value<int> idPaiement,
       required String uuid,
       required String idInscriptionUuid,
+      required String idTarifFraisUuid,
       required double montantPaye,
       Value<DateTime> datePaiement,
       required String modePaiement,
@@ -5061,6 +7503,7 @@ typedef $$PaiementInscriptionsTableUpdateCompanionBuilder =
       Value<int> idPaiement,
       Value<String> uuid,
       Value<String> idInscriptionUuid,
+      Value<String> idTarifFraisUuid,
       Value<double> montantPaye,
       Value<DateTime> datePaiement,
       Value<String> modePaiement,
@@ -5084,10 +7527,7 @@ final class $$PaiementInscriptionsTableReferences
 
   static $EleveInscriptionsTable _idInscriptionUuidTable(_$AppDatabase db) =>
       db.eleveInscriptions.createAlias(
-        $_aliasNameGenerator(
-          db.paiementInscriptions.idInscriptionUuid,
-          db.eleveInscriptions.uuid,
-        ),
+        'paiement_inscriptions__id_inscription_uuid__eleve_inscriptions__uuid',
       );
 
   $$EleveInscriptionsTableProcessedTableManager get idInscriptionUuid {
@@ -5098,6 +7538,25 @@ final class $$PaiementInscriptionsTableReferences
       $_db.eleveInscriptions,
     ).filter((f) => f.uuid.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_idInscriptionUuidTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $TarifsFraisTable _idTarifFraisUuidTable(_$AppDatabase db) =>
+      db.tarifsFrais.createAlias(
+        'paiement_inscriptions__id_tarif_frais_uuid__tarifs_frais__uuid',
+      );
+
+  $$TarifsFraisTableProcessedTableManager get idTarifFraisUuid {
+    final $_column = $_itemColumn<String>('id_tarif_frais_uuid')!;
+
+    final manager = $$TarifsFraisTableTableManager(
+      $_db,
+      $_db.tarifsFrais,
+    ).filter((f) => f.uuid.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_idTarifFraisUuidTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -5168,6 +7627,29 @@ class $$PaiementInscriptionsTableFilterComposer
           }) => $$EleveInscriptionsTableFilterComposer(
             $db: $db,
             $table: $db.eleveInscriptions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$TarifsFraisTableFilterComposer get idTarifFraisUuid {
+    final $$TarifsFraisTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.idTarifFraisUuid,
+      referencedTable: $db.tarifsFrais,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TarifsFraisTableFilterComposer(
+            $db: $db,
+            $table: $db.tarifsFrais,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -5249,6 +7731,29 @@ class $$PaiementInscriptionsTableOrderingComposer
     );
     return composer;
   }
+
+  $$TarifsFraisTableOrderingComposer get idTarifFraisUuid {
+    final $$TarifsFraisTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.idTarifFraisUuid,
+      referencedTable: $db.tarifsFrais,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TarifsFraisTableOrderingComposer(
+            $db: $db,
+            $table: $db.tarifsFrais,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$PaiementInscriptionsTableAnnotationComposer
@@ -5317,6 +7822,29 @@ class $$PaiementInscriptionsTableAnnotationComposer
         );
     return composer;
   }
+
+  $$TarifsFraisTableAnnotationComposer get idTarifFraisUuid {
+    final $$TarifsFraisTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.idTarifFraisUuid,
+      referencedTable: $db.tarifsFrais,
+      getReferencedColumn: (t) => t.uuid,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$TarifsFraisTableAnnotationComposer(
+            $db: $db,
+            $table: $db.tarifsFrais,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
 }
 
 class $$PaiementInscriptionsTableTableManager
@@ -5332,7 +7860,10 @@ class $$PaiementInscriptionsTableTableManager
           $$PaiementInscriptionsTableUpdateCompanionBuilder,
           (PaiementInscription, $$PaiementInscriptionsTableReferences),
           PaiementInscription,
-          PrefetchHooks Function({bool idInscriptionUuid})
+          PrefetchHooks Function({
+            bool idInscriptionUuid,
+            bool idTarifFraisUuid,
+          })
         > {
   $$PaiementInscriptionsTableTableManager(
     _$AppDatabase db,
@@ -5358,6 +7889,7 @@ class $$PaiementInscriptionsTableTableManager
                 Value<int> idPaiement = const Value.absent(),
                 Value<String> uuid = const Value.absent(),
                 Value<String> idInscriptionUuid = const Value.absent(),
+                Value<String> idTarifFraisUuid = const Value.absent(),
                 Value<double> montantPaye = const Value.absent(),
                 Value<DateTime> datePaiement = const Value.absent(),
                 Value<String> modePaiement = const Value.absent(),
@@ -5368,6 +7900,7 @@ class $$PaiementInscriptionsTableTableManager
                 idPaiement: idPaiement,
                 uuid: uuid,
                 idInscriptionUuid: idInscriptionUuid,
+                idTarifFraisUuid: idTarifFraisUuid,
                 montantPaye: montantPaye,
                 datePaiement: datePaiement,
                 modePaiement: modePaiement,
@@ -5380,6 +7913,7 @@ class $$PaiementInscriptionsTableTableManager
                 Value<int> idPaiement = const Value.absent(),
                 required String uuid,
                 required String idInscriptionUuid,
+                required String idTarifFraisUuid,
                 required double montantPaye,
                 Value<DateTime> datePaiement = const Value.absent(),
                 required String modePaiement,
@@ -5390,6 +7924,7 @@ class $$PaiementInscriptionsTableTableManager
                 idPaiement: idPaiement,
                 uuid: uuid,
                 idInscriptionUuid: idInscriptionUuid,
+                idTarifFraisUuid: idTarifFraisUuid,
                 montantPaye: montantPaye,
                 datePaiement: datePaiement,
                 modePaiement: modePaiement,
@@ -5405,49 +7940,65 @@ class $$PaiementInscriptionsTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({idInscriptionUuid = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (idInscriptionUuid) {
-                      state =
-                          state.withJoin(
-                                currentTable: table,
-                                currentColumn: table.idInscriptionUuid,
-                                referencedTable:
-                                    $$PaiementInscriptionsTableReferences
-                                        ._idInscriptionUuidTable(db),
-                                referencedColumn:
-                                    $$PaiementInscriptionsTableReferences
-                                        ._idInscriptionUuidTable(db)
-                                        .uuid,
-                              )
-                              as T;
-                    }
+          prefetchHooksCallback:
+              ({idInscriptionUuid = false, idTarifFraisUuid = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (idInscriptionUuid) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.idInscriptionUuid,
+                                    referencedTable:
+                                        $$PaiementInscriptionsTableReferences
+                                            ._idInscriptionUuidTable(db),
+                                    referencedColumn:
+                                        $$PaiementInscriptionsTableReferences
+                                            ._idInscriptionUuidTable(db)
+                                            .uuid,
+                                  )
+                                  as T;
+                        }
+                        if (idTarifFraisUuid) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.idTarifFraisUuid,
+                                    referencedTable:
+                                        $$PaiementInscriptionsTableReferences
+                                            ._idTarifFraisUuidTable(db),
+                                    referencedColumn:
+                                        $$PaiementInscriptionsTableReferences
+                                            ._idTarifFraisUuidTable(db)
+                                            .uuid,
+                                  )
+                                  as T;
+                        }
 
-                    return state;
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
                   },
-              getPrefetchedDataCallback: (items) async {
-                return [];
+                );
               },
-            );
-          },
         ),
       );
 }
@@ -5464,7 +8015,7 @@ typedef $$PaiementInscriptionsTableProcessedTableManager =
       $$PaiementInscriptionsTableUpdateCompanionBuilder,
       (PaiementInscription, $$PaiementInscriptionsTableReferences),
       PaiementInscription,
-      PrefetchHooks Function({bool idInscriptionUuid})
+      PrefetchHooks Function({bool idInscriptionUuid, bool idTarifFraisUuid})
     >;
 typedef $$UtilisateursTableCreateCompanionBuilder =
     UtilisateursCompanion Function({
@@ -5737,6 +8288,10 @@ class $AppDatabaseManager {
       $$ClassesTableTableManager(_db, _db.classes);
   $$EleveInscriptionsTableTableManager get eleveInscriptions =>
       $$EleveInscriptionsTableTableManager(_db, _db.eleveInscriptions);
+  $$TypesFraisTableTableManager get typesFrais =>
+      $$TypesFraisTableTableManager(_db, _db.typesFrais);
+  $$TarifsFraisTableTableManager get tarifsFrais =>
+      $$TarifsFraisTableTableManager(_db, _db.tarifsFrais);
   $$PaiementInscriptionsTableTableManager get paiementInscriptions =>
       $$PaiementInscriptionsTableTableManager(_db, _db.paiementInscriptions);
   $$UtilisateursTableTableManager get utilisateurs =>

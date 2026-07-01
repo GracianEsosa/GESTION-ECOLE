@@ -8,8 +8,13 @@ import '../providers/classe_provider.dart';
 import '../providers/inscription_provider.dart';
 import '../providers/option_provider.dart';
 import '../providers/paiement_provider.dart';
-import '../providers/sync_provider.dart'; // À créer
+import '../providers/sync_provider.dart';
 import '../providers/utilisateur_provider.dart';
+
+// 🆕 Nouveaux providers pour les frais scolaires (sans factures)
+import '../providers/type_frais_provider.dart';
+import '../providers/tarif_frais_provider.dart';
+// import 'facture_provider.dart';  // ❌ Supprimé
 
 class DashboardPage extends ConsumerWidget {
   const DashboardPage({super.key});
@@ -21,6 +26,10 @@ class DashboardPage extends ConsumerWidget {
     final optionsAsync = ref.watch(optionsListProvider);
     final inscriptionsAsync = ref.watch(inscriptionsListProvider);
     final paiementsAsync = ref.watch(paiementsListProvider);
+
+    // 🆕 Nouveaux providers (sans factures)
+    final typesFraisAsync = ref.watch(typesFraisListProvider);
+    final tarifsFraisAsync = ref.watch(tarifsFraisListProvider);
 
     // Pour la synchronisation
     final unsyncedDataAsync = ref.watch(unsyncedDataProvider);
@@ -41,7 +50,10 @@ class DashboardPage extends ConsumerWidget {
                     data.classes.isNotEmpty ||
                     data.inscriptions.isNotEmpty ||
                     data.paiements.isNotEmpty ||
-                    data.utilisateurs.isNotEmpty,
+                    data.utilisateurs.isNotEmpty ||
+                    data.typesFrais.isNotEmpty ||
+                    data.tarifsFrais.isNotEmpty,
+                // data.factures.isNotEmpty  ❌ Supprimé
                 loading: () => false,
                 error: (_, __) => false,
               );
@@ -61,20 +73,23 @@ class DashboardPage extends ConsumerWidget {
                         ? null
                         : () async {
                             ref.read(syncStatusProvider.notifier).state = true;
-
                             bool success = false;
-
                             try {
                               success = await ref
                                   .read(syncServiceProvider)
                                   .syncToServer();
 
+                              // Invalider les listes existantes
                               ref.invalidate(anneesListProvider);
                               ref.invalidate(optionsListProvider);
                               ref.invalidate(classesListProvider);
                               ref.invalidate(inscriptionsListProvider);
                               ref.invalidate(paiementsListProvider);
                               ref.invalidate(utilisateursListProvider);
+                              // 🆕 Invalider les nouvelles listes
+                              ref.invalidate(typesFraisListProvider);
+                              ref.invalidate(tarifsFraisListProvider);
+                              // ref.invalidate(facturesListProvider); ❌ Supprimé
                               ref.invalidate(unsyncedDataProvider);
                             } catch (e) {
                               print(e);
@@ -129,7 +144,10 @@ class DashboardPage extends ConsumerWidget {
                     data.classes.length +
                     data.inscriptions.length +
                     data.paiements.length +
-                    data.utilisateurs.length;
+                    data.utilisateurs.length +
+                    data.typesFrais.length +
+                    data.tarifsFrais.length;
+                // + data.factures.length;  ❌ Supprimé
 
                 if (totalUnsynced == 0) return const SizedBox.shrink();
 
@@ -186,6 +204,7 @@ class DashboardPage extends ConsumerWidget {
 
                 return Column(
                   children: [
+                    // Ligne 1 : Cartes de comptage
                     Wrap(
                       spacing: 16,
                       runSpacing: 16,
@@ -235,9 +254,31 @@ class DashboardPage extends ConsumerWidget {
                             const Color(0xFF219EBC),
                           ),
                         ),
+                        // 🆕 Nouvelles cartes (sans factures)
+                        SizedBox(
+                          width: cardWidth,
+                          child: _buildCountCard(
+                            'Types de frais',
+                            typesFraisAsync,
+                            Icons.label_important,
+                            const Color(0xFFE63946),
+                          ),
+                        ),
+                        SizedBox(
+                          width: cardWidth,
+                          child: _buildCountCard(
+                            'Tarifs',
+                            tarifsFraisAsync,
+                            Icons.attach_money,
+                            const Color(0xFF2A9D8F),
+                          ),
+                        ),
+                        // Carte "Factures" supprimée ❌
                       ],
                     ),
                     const SizedBox(height: 24),
+
+                    // Ligne 2 : Sections (derniers éléments)
                     Wrap(
                       spacing: 16,
                       runSpacing: 16,
@@ -267,11 +308,10 @@ class DashboardPage extends ConsumerWidget {
                             (PaiementInscription paiement) {
                               return _DashboardListTile(
                                 title:
-                                    '${paiement.montantPaye.toStringAsFixed(2)} FCFA',
-                                subtitle: 'Mode : ${paiement.modePaiement}',
-                                trailing: DateFormat(
-                                  'dd/MM/yyyy',
-                                ).format(paiement.datePaiement),
+                                    '${paiement.montantPaye.toStringAsFixed(0)} FCFA',
+                                subtitle:
+                                    'Mode : ${paiement.modePaiement} | ${DateFormat('dd/MM/yyyy').format(paiement.datePaiement)}',
+                                trailing: '',
                                 isSynced: paiement.isSynced,
                               );
                             },
@@ -325,6 +365,42 @@ class DashboardPage extends ConsumerWidget {
                             );
                           }),
                         ),
+                        // 🆕 Nouvelles sections
+                        SizedBox(
+                          width: sectionWidth,
+                          child: _buildSection(
+                            'Types de frais',
+                            typesFraisAsync,
+                            (TypesFrai type) {
+                              return _DashboardListTile(
+                                title: '${type.code} - ${type.libelle}',
+                                subtitle: 'Périodicité : ${type.periodicite}',
+                                trailing: type.actif ? 'Actif' : 'Inactif',
+                                isSynced: type.isSynced,
+                              );
+                            },
+                          ),
+                        ),
+                        SizedBox(
+                          width: sectionWidth,
+                          child: _buildSection(
+                            'Tarifs récents',
+                            tarifsFraisAsync,
+                            (TarifsFrai tarif) {
+                              return _DashboardListTile(
+                                title:
+                                    'FCFA ${tarif.montant.toStringAsFixed(0)}',
+                                subtitle:
+                                    'T${tarif.trimestre} - ${tarif.idTypeFraisUuid.substring(0, 8)}...',
+                                trailing: tarif.idClasseUuid == null
+                                    ? 'Toutes classes'
+                                    : 'Classe spécifique',
+                                isSynced: tarif.isSynced,
+                              );
+                            },
+                          ),
+                        ),
+                        // Section "Dernières factures" supprimée ❌
                       ],
                     ),
                   ],
@@ -442,12 +518,14 @@ class _DashboardListTile extends StatelessWidget {
   final String subtitle;
   final String trailing;
   final bool isSynced;
+  final Color? trailingColor;
 
   const _DashboardListTile({
     required this.title,
     required this.subtitle,
     required this.trailing,
     this.isSynced = true,
+    this.trailingColor,
   });
 
   @override
@@ -503,7 +581,10 @@ class _DashboardListTile extends StatelessWidget {
           if (trailing.isNotEmpty)
             Text(
               trailing,
-              style: const TextStyle(fontSize: 13, color: Colors.black54),
+              style: TextStyle(
+                fontSize: 13,
+                color: trailingColor ?? Colors.black54,
+              ),
             ),
         ],
       ),

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:intl/date_symbol_data_local.dart' show initializeDateFormatting;
 
 import 'pages/dashboard_page.dart';
 import 'pages/report_page.dart';
@@ -10,9 +11,17 @@ import 'pages/classe_page.dart';
 import 'pages/option_page.dart';
 import 'pages/paiement_page.dart';
 import 'pages/annee_page.dart';
+
+// 🆕 Import des nouvelles pages (sans factures)
+import 'pages/type_frais_page.dart';
+import 'pages/tarif_frais_page.dart';
+// import 'pages/facture_list_page.dart';  // ❌ Supprimé
+
 import 'theme/app_theme.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting('fr_FR', null); // Initialiser les locales
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -41,6 +50,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int currentIndex = 0;
 
+  // Menu sans "Factures"
   final List<Map<String, dynamic>> menuItems = const [
     {'label': 'Dashboard', 'icon': Icons.dashboard},
     {'label': 'Rapports', 'icon': Icons.bar_chart},
@@ -49,9 +59,12 @@ class _HomePageState extends State<HomePage> {
     {'label': 'Classes', 'icon': Icons.class_},
     {'label': 'Options', 'icon': Icons.category},
     {'label': 'Paiements', 'icon': Icons.payments},
+    {'label': 'Types de frais', 'icon': Icons.label_important}, // 🆕
+    {'label': 'Tarifs', 'icon': Icons.attach_money}, // 🆕
     {'label': 'Années', 'icon': Icons.calendar_month},
   ];
 
+  // Pages correspondantes (sans FactureListPage)
   final List<Widget> pages = const [
     DashboardPage(),
     ReportPage(),
@@ -60,6 +73,8 @@ class _HomePageState extends State<HomePage> {
     ClassePage(),
     OptionPage(),
     PaiementPage(),
+    TypeFraisPage(), // 🆕
+    TarifFraisPage(), // 🆕
     AnneePage(),
   ];
 
