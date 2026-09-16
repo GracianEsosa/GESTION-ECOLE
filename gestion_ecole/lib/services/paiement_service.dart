@@ -50,6 +50,16 @@ class PaiementService {
   }
 
   ////////////////////////////////////////////////////
+  /// FLUX REACTIF (STREAM)
+  ////////////////////////////////////////////////////
+
+  Stream<List<PaiementInscription>> watchPaiements() {
+    return (db.select(
+      db.paiementInscriptions,
+    )..orderBy([(t) => OrderingTerm.desc(t.datePaiement)])).watch();
+  }
+
+  ////////////////////////////////////////////////////
   /// RECHERCHE par inscription
   ////////////////////////////////////////////////////
 
@@ -59,6 +69,14 @@ class PaiementService {
     return await (db.select(
       db.paiementInscriptions,
     )..where((t) => t.idInscriptionUuid.equals(idInscriptionUuid))).get();
+  }
+
+  Stream<List<PaiementInscription>> watchPaiementsParInscription(
+    String idInscriptionUuid,
+  ) {
+    return (db.select(
+      db.paiementInscriptions,
+    )..where((t) => t.idInscriptionUuid.equals(idInscriptionUuid))).watch();
   }
 
   // 🔥 Suppression de rechercherPaiementsParFacture (car plus de factures)

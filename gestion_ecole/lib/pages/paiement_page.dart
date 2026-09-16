@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
 import '../database/app_database.dart';
+import '../providers/annee_provider.dart';
 import '../providers/inscription_provider.dart';
 import '../providers/paiement_provider.dart';
 import '../providers/tarif_frais_provider.dart';
@@ -75,14 +76,17 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
   }
 
   Future<double> _getDejaPaye() async {
-    if (_selectedInscriptionUuid == null || _selectedTarifUuid == null)
+    if (_selectedInscriptionUuid == null || _selectedTarifUuid == null) {
       return 0.0;
+    }
     final paiements = await ref.read(paiementsListProvider.future);
     return paiements
         .where(
           (p) =>
               p.idInscriptionUuid == _selectedInscriptionUuid &&
-              p.idTarifFraisUuid == _selectedTarifUuid,
+              p.idTarifFraisUuid == _selectedTarifUuid &&
+              (_editingPaiement == null ||
+                  p.idPaiement != _editingPaiement!.idPaiement),
         )
         .fold<double>(0.0, (sum, p) => sum + p.montantPaye);
   }
@@ -233,6 +237,106 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
   }
 
   // ============================================================
+  //  Contrôle Séquentiel Strict des Paiements (Périodes & Années)
+  // ============================================================
+  Future<String?> _checkSequentialPaymentBlock(
+    String inscriptionUuid,
+    String tarifUuid,
+  ) async {
+    final allTarifs = await ref.read(tarifsFraisListProvider.future);
+    final allPaiements = await ref.read(paiementsListProvider.future);
+    final allTypes = await ref.read(typesFraisListProvider.future);
+    final allInscriptions = await ref.read(inscriptionsListProvider.future);
+    final allAnnees = await ref.read(anneesListProvider.future);
+
+    final targetTarifMatches = allTarifs.where((t) => t.uuid == tarifUuid).toList();
+    if (targetTarifMatches.isEmpty) return null;
+    final targetTarif = targetTarifMatches.first;
+
+    final targetInscriptionMatches = allInscriptions.where((i) => i.uuid == inscriptionUuid).toList();
+    if (targetInscriptionMatches.isEmpty) return null;
+    final targetInscription = targetInscriptionMatches.first;
+
+    final currentAnneeMatches = allAnnees.where((a) => a.uuid == targetTarif.idAnneeUuid).toList();
+    if (currentAnneeMatches.isEmpty) return null;
+    final currentAnnee = currentAnneeMatches.first;
+
+    // 1. Contrôle des années scolaires antérieures pour le MÊME élève
+    final sameElevePriorInscriptions = allInscriptions.where((i) {
+      if (i.uuid == inscriptionUuid) return false;
+      final isSameEleve =
+          i.nomEleve.trim().toLowerCase() == targetInscription.nomEleve.trim().toLowerCase() &&
+          i.prenomEleve.trim().toLowerCase() == targetInscription.prenomEleve.trim().toLowerCase();
+      if (!isSameEleve) return false;
+
+      final anneeMatches = allAnnees.where((a) => a.uuid == i.idAnneeUuid).toList();
+      if (anneeMatches.isEmpty) return false;
+      final annee = anneeMatches.first;
+      return annee.dateDebut.isBefore(currentAnnee.dateDebut);
+    }).toList();
+
+    for (final priorInsc in sameElevePriorInscriptions) {
+      final priorAnneeMatches = allAnnees.where((a) => a.uuid == priorInsc.idAnneeUuid).toList();
+      if (priorAnneeMatches.isEmpty) continue;
+      final priorAnnee = priorAnneeMatches.first;
+
+      final priorTarifs = allTarifs.where(
+        (t) => t.idAnneeUuid == priorInsc.idAnneeUuid && (t.idClasseUuid == priorInsc.idClasseUuid || t.idClasseUuid == null),
+      ).toList();
+
+      for (final pt in priorTarifs) {
+        final ptPaye = allPaiements
+            .where((p) => p.idInscriptionUuid == priorInsc.uuid && p.idTarifFraisUuid == pt.uuid)
+            .fold<double>(0.0, (sum, p) => sum + p.montantPaye);
+        final ptRestant = pt.montant - ptPaye;
+
+        if (ptRestant > 0) {
+          return 'Paiement bloqué : L\'élève a des arriérés d\'une année scolaire précédente (${priorAnnee.libelleAnnee} - Restant : FCFA ${ptRestant.toStringAsFixed(0)}). Veuillez les solder d\'abord.';
+        }
+      }
+    }
+
+    // 2. Contrôle des périodes antérieures (trimestres/mois) de la MÊME année scolaire
+    final currentTypeMatches = allTypes.where((t) => t.uuid == targetTarif.idTypeFraisUuid).toList();
+    final currentType = currentTypeMatches.isNotEmpty ? currentTypeMatches.first : null;
+
+    final prevTarifs = allTarifs
+        .where(
+          (t) =>
+              t.idTypeFraisUuid == targetTarif.idTypeFraisUuid &&
+              t.idAnneeUuid == targetTarif.idAnneeUuid &&
+              t.trimestre < targetTarif.trimestre,
+        )
+        .toList()
+      ..sort((a, b) => a.trimestre.compareTo(b.trimestre));
+
+    for (final prev in prevTarifs) {
+      final prevPaye = allPaiements
+          .where(
+            (p) =>
+                p.idInscriptionUuid == inscriptionUuid &&
+                p.idTarifFraisUuid == prev.uuid &&
+                (_editingPaiement == null || p.idPaiement != _editingPaiement!.idPaiement),
+          )
+          .fold<double>(0.0, (sum, p) => sum + p.montantPaye);
+      final prevRestant = prev.montant - prevPaye;
+
+      if (prevRestant > 0) {
+        final periodName = currentType?.periodicite == 'trimestriel'
+            ? 'Trimestre ${prev.trimestre} (T${prev.trimestre})'
+            : 'Mois ${prev.trimestre}';
+        final targetPeriodName = currentType?.periodicite == 'trimestriel'
+            ? 'Trimestre ${targetTarif.trimestre} (T${targetTarif.trimestre})'
+            : 'Mois ${targetTarif.trimestre}';
+
+        return 'Paiement bloqué : L\'élève doit d\'abord solder $periodName (Restant : FCFA ${prevRestant.toStringAsFixed(0)}) avant de verser sur $targetPeriodName.';
+      }
+    }
+
+    return null;
+  }
+
+  // ============================================================
   //  Sauvegarde du paiement
   // ============================================================
   Future<void> _savePaiement() async {
@@ -241,7 +345,6 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
     final montant = double.tryParse(_montantController.text.trim()) ?? 0.0;
     final motif = _motifController.text.trim();
 
-    // Vérification du restant dû
     final tarif = await _getSelectedTarif();
     if (tarif == null) {
       ScaffoldMessenger.of(
@@ -252,6 +355,21 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
 
     final dejaPaye = await _getDejaPaye();
     final restant = tarif.montant - dejaPaye;
+
+    // 🛑 VÉRIFICATION SÉQUENTIELLE STRICTE
+    final blockReason = await _checkSequentialPaymentBlock(
+      _selectedInscriptionUuid!,
+      _selectedTarifUuid!,
+    );
+    if (blockReason != null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(blockReason),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
 
     if (montant > restant) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -291,7 +409,9 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
         await _setInscriptionStatutInscrit(_selectedInscriptionUuid!);
       }
 
-      ref.refresh(paiementsListProvider);
+      ref.invalidate(paiementsListProvider);
+      ref.invalidate(inscriptionsListProvider);
+      ref.invalidate(unsyncedPaiementsProvider);
 
       // Afficher le ticket de paiement
       final inscription = await _getInscription(_selectedInscriptionUuid!);
@@ -357,49 +477,54 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
       context: context,
       builder: (context) {
         final inscriptionsAsync = ref.watch(inscriptionsListProvider);
-        final tarifsAsync = ref.watch(tarifsFraisListProvider);
-        final typesAsync = ref.watch(typesFraisListProvider);
 
         return StatefulBuilder(
           builder: (context, setStateDialog) {
-            // État local pour le calcul du restant dû
-            double _dejaPaye = 0.0;
-            double _montantTarif = 0.0;
-            bool _isLoading = false;
+            // État local pour le calcul du restant dû et blocage
+            double dejaPayeVal = 0.0;
+            double montantTarifVal = 0.0;
+            String? blockingMessageVal;
+            bool isLoadingVal = false;
 
-            Future<void> _refreshCalculs() async {
+            Future<void> refreshCalculs() async {
               if (_selectedTarifUuid == null ||
                   _selectedInscriptionUuid == null) {
                 setStateDialog(() {
-                  _dejaPaye = 0.0;
-                  _montantTarif = 0.0;
+                  dejaPayeVal = 0.0;
+                  montantTarifVal = 0.0;
+                  blockingMessageVal = null;
                 });
                 return;
               }
-              setStateDialog(() => _isLoading = true);
+              setStateDialog(() => isLoadingVal = true);
               try {
                 final tarif = await _getSelectedTarif();
                 final dejaPaye = await _getDejaPaye();
+                final blockReason = await _checkSequentialPaymentBlock(
+                  _selectedInscriptionUuid!,
+                  _selectedTarifUuid!,
+                );
                 setStateDialog(() {
-                  _montantTarif = tarif?.montant ?? 0.0;
-                  _dejaPaye = dejaPaye;
-                  _isLoading = false;
+                  montantTarifVal = tarif?.montant ?? 0.0;
+                  dejaPayeVal = dejaPaye;
+                  blockingMessageVal = blockReason;
+                  isLoadingVal = false;
                 });
               } catch (e) {
-                setStateDialog(() => _isLoading = false);
+                setStateDialog(() => isLoadingVal = false);
               }
             }
 
             // Charger au démarrage du dialogue
             if (_editingPaiement != null || _selectedTarifUuid != null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!_isLoading) {
-                  _refreshCalculs();
+                if (!isLoadingVal) {
+                  refreshCalculs();
                 }
               });
             }
 
-            final restant = _montantTarif - _dejaPaye;
+            final restant = montantTarifVal - dejaPayeVal;
 
             return AlertDialog(
               title: Text(
@@ -413,6 +538,33 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      if (blockingMessageVal != null) ...[
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.red.shade50,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red.shade300),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.block, color: Colors.red, size: 24),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  blockingMessageVal!,
+                                  style: const TextStyle(
+                                    color: Colors.red,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
                       // 1. Inscription
                       inscriptionsAsync.when(
                         data: (inscriptions) {
@@ -750,7 +902,9 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
     try {
       final service = ref.read(paiementServiceProvider);
       await service.supprimerPaiement(id);
-      ref.refresh(paiementsListProvider);
+      ref.invalidate(paiementsListProvider);
+      ref.invalidate(inscriptionsListProvider);
+      ref.invalidate(unsyncedPaiementsProvider);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Paiement supprimé avec succès')),
@@ -782,8 +936,9 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              ref.refresh(paiementsListProvider);
-              ref.refresh(inscriptionsListProvider);
+              ref.invalidate(paiementsListProvider);
+              ref.invalidate(inscriptionsListProvider);
+              ref.invalidate(tarifsFraisListProvider);
             },
           ),
         ],
@@ -801,85 +956,322 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
               ),
             );
           }
-          return ListView.separated(
-            padding: const EdgeInsets.all(16),
-            itemCount: paiements.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
-            itemBuilder: (context, index) {
-              final paiement = paiements[index];
-              final inscriptionLabel = inscriptionsAsync.maybeWhen(
-                data: (inscriptions) {
-                  final selected = inscriptions
-                      .where((item) => item.uuid == paiement.idInscriptionUuid)
-                      .toList();
-                  return selected.isNotEmpty
-                      ? '${selected.first.nomEleve} ${selected.first.prenomEleve}'
-                      : 'Inscription inconnue';
-                },
-                orElse: () => 'Chargement...',
-              );
 
-              final tarif = tarifsAsync.maybeWhen(
-                data: (data) => data.firstWhere(
-                  (t) => t.uuid == paiement.idTarifFraisUuid,
-                  orElse: () => throw Exception('Tarif non trouvé'),
+          final totalGeneralEncaisse = paiements.fold<double>(
+            0.0,
+            (sum, p) => sum + p.montantPaye,
+          );
+
+          return Column(
+            children: [
+              // 📊 Carte synthétique des paiements (Total encaisse)
+              Container(
+                width: double.infinity,
+                margin: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [Colors.blue.shade700, Colors.indigo.shade800],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.blue.withOpacity(0.2),
+                      blurRadius: 8,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
-                orElse: () => null,
-              );
-
-              String tarifLabel = 'Tarif inconnu';
-              if (tarif != null) {
-                final type = typesAsync.maybeWhen(
-                  data: (data) => data.firstWhere(
-                    (t) => t.uuid == tarif.idTypeFraisUuid,
-                    orElse: () => throw Exception('Type non trouvé'),
-                  ),
-                  orElse: () => null,
-                );
-                if (type != null) {
-                  tarifLabel =
-                      '${type.code} - ${type.libelle} (T${tarif.trimestre})';
-                } else {
-                  tarifLabel = 'Type inconnu (T${tarif.trimestre})';
-                }
-              }
-
-              return Card(
-                elevation: 2,
-                child: ListTile(
-                  title: Text(inscriptionLabel),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Tarif : $tarifLabel'),
-                      Text(
-                        'Montant : ${paiement.montantPaye.toStringAsFixed(0)} FCFA',
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Total des Encaissements',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${totalGeneralEncaisse.toStringAsFixed(0)} FCFA',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
                       ),
-                      Text(
-                        'Date : ${DateFormat('dd/MM/yyyy').format(paiement.datePaiement)}',
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(20),
                       ),
-                      Text('Mode : ${paiement.modePaiement}'),
-                      if (paiement.motifPaiement.isNotEmpty)
-                        Text('Motif : ${paiement.motifPaiement}'),
-                    ],
-                  ),
-                  isThreeLine: true,
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _openPaiementDialog(paiement),
+                      child: Text(
+                        '${paiements.length} paiement${paiements.length > 1 ? 's' : ''}',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _deletePaiement(paiement.idPaiement),
-                      ),
-                    ],
-                  ),
+                    ),
+                  ],
                 ),
-              );
-            },
+              ),
+
+              // 📋 Liste des reçus de paiements
+              Expanded(
+                child: ListView.separated(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
+                  itemCount: paiements.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 10),
+                  itemBuilder: (context, index) {
+                    final paiement = paiements[index];
+                    final inscriptions = inscriptionsAsync.asData?.value ?? [];
+                    final matchingInscriptions = inscriptions
+                        .where((item) => item.uuid == paiement.idInscriptionUuid)
+                        .toList();
+                    final inscriptionLabel = matchingInscriptions.isNotEmpty
+                        ? '${matchingInscriptions.first.nomEleve} ${matchingInscriptions.first.prenomEleve}'
+                        : 'Inscription inconnue';
+
+                    final tarifs = tarifsAsync.asData?.value ?? [];
+                    final matchingTarifs = tarifs
+                        .where((t) => t.uuid == paiement.idTarifFraisUuid)
+                        .toList();
+                    final TarifsFrai? tarif =
+                        matchingTarifs.isNotEmpty ? matchingTarifs.first : null;
+
+                    String tarifLabel = 'Tarif inconnu';
+                    if (tarif != null) {
+                      final types = typesAsync.asData?.value ?? [];
+                      final matchingTypes = types
+                          .where((t) => t.uuid == tarif.idTypeFraisUuid)
+                          .toList();
+                      final TypesFrai? type =
+                          matchingTypes.isNotEmpty ? matchingTypes.first : null;
+
+                      if (type != null) {
+                        tarifLabel =
+                            '${type.code} - ${type.libelle} (T${tarif.trimestre})';
+                      } else {
+                        tarifLabel = 'Type inconnu (T${tarif.trimestre})';
+                      }
+                    }
+
+                    // Calcul dynamique du total déjà payé pour cette inscription et ce tarif
+                    final cumulPayeEleve = paiements
+                        .where(
+                          (p) =>
+                              p.idInscriptionUuid ==
+                                  paiement.idInscriptionUuid &&
+                              p.idTarifFraisUuid == paiement.idTarifFraisUuid,
+                        )
+                        .fold<double>(0.0, (sum, p) => sum + p.montantPaye);
+
+                    final montantTarifTotal = tarif?.montant ?? 0.0;
+                    final restantDu = montantTarifTotal - cumulPayeEleve;
+                    final isPayeIntegralle =
+                        montantTarifTotal > 0 && restantDu <= 0;
+
+                    return Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // En-tête de la carte : Nom de l'élève & mode
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    inscriptionLabel,
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.shade100,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Text(
+                                    paiement.modePaiement,
+                                    style: TextStyle(
+                                      color: Colors.blue.shade900,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const Divider(height: 14),
+
+                            // Détails du tarif & montant de ce versement
+                            Text(
+                              'Tarif : $tarifLabel',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Montant de ce versement :',
+                                  style: TextStyle(color: Colors.grey.shade700),
+                                ),
+                                Text(
+                                  '${paiement.montantPaye.toStringAsFixed(0)} FCFA',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+
+                            // 🔥 Encadré récapitulatif : Cumul déjà payé & Restant dû
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Déjà payé (Total élève) :',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey.shade800,
+                                        ),
+                                      ),
+                                      Text(
+                                        '${cumulPayeEleve.toStringAsFixed(0)} / ${montantTarifTotal.toStringAsFixed(0)} FCFA',
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isPayeIntegralle
+                                          ? Colors.green.shade100
+                                          : Colors.orange.shade100,
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      isPayeIntegralle
+                                          ? 'Payé intégralement'
+                                          : 'Restant : ${restantDu.toStringAsFixed(0)} FCFA',
+                                      style: TextStyle(
+                                        color: isPayeIntegralle
+                                            ? Colors.green.shade900
+                                            : Colors.orange.shade900,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 6),
+
+                            // Date & Motif + Actions (Modifier, Supprimer)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    'Date : ${DateFormat('dd/MM/yyyy').format(paiement.datePaiement)}' +
+                                        (paiement.motifPaiement.isNotEmpty
+                                            ? ' • ${paiement.motifPaiement}'
+                                            : ''),
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.grey.shade600,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.edit,
+                                        size: 20,
+                                        color: Colors.blue,
+                                      ),
+                                      onPressed: () =>
+                                          _openPaiementDialog(paiement),
+                                      tooltip: 'Modifier',
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.delete,
+                                        size: 20,
+                                        color: Colors.red,
+                                      ),
+                                      onPressed: () =>
+                                          _deletePaiement(paiement.idPaiement),
+                                      tooltip: 'Supprimer',
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           );
         },
         loading: () => const Center(child: CircularProgressIndicator()),

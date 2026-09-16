@@ -4,6 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../database/app_database.dart';
 import '../providers/type_frais_provider.dart';
+import '../providers/annee_provider.dart';
+import '../providers/classe_provider.dart';
+import '../providers/tarif_frais_provider.dart';
 
 class TypeFraisPage extends ConsumerStatefulWidget {
   const TypeFraisPage({super.key});
@@ -17,8 +20,11 @@ class _TypeFraisPageState extends ConsumerState<TypeFraisPage> {
   final _codeController = TextEditingController();
   final _libelleController = TextEditingController();
   final _descriptionController = TextEditingController();
+  final _montantInitialController = TextEditingController();
   String _periodicite = 'mensuel';
   bool _actif = true;
+  String? _selectedAnneeUuid;
+  String? _selectedClasseUuid;
   TypesFrai? _editingType;
 
   final List<String> _periodicites = [
@@ -33,6 +39,7 @@ class _TypeFraisPageState extends ConsumerState<TypeFraisPage> {
     _codeController.dispose();
     _libelleController.dispose();
     _descriptionController.dispose();
+    _montantInitialController.dispose();
     super.dispose();
   }
 
@@ -40,6 +47,7 @@ class _TypeFraisPageState extends ConsumerState<TypeFraisPage> {
     if (!_formKey.currentState!.validate()) return;
 
     final service = ref.read(typeFraisServiceProvider);
+    final tarifService = ref.read(tarifFraisServiceProvider);
     final code = _codeController.text.trim().toUpperCase();
     final libelle = _libelleController.text.trim();
     final description = _descriptionController.text.trim().isEmpty
@@ -48,13 +56,30 @@ class _TypeFraisPageState extends ConsumerState<TypeFraisPage> {
 
     try {
       if (_editingType == null) {
-        // ✅ Appel avec paramètres positionnels (dans l'ordre)
         await service.ajouterTypeFrais(
           code,
           libelle,
           description,
           _periodicite,
         );
+
+        // Auto-génération des tarifs si un montant initial est saisi
+        final montantText = _montantInitialController.text.trim();
+        if (montantText.isNotEmpty && _selectedAnneeUuid != null) {
+          final montant = double.tryParse(montantText) ?? 0.0;
+          if (montant > 0) {
+            final allTypes = await service.getTypesFrais();
+            final createdType = allTypes.firstWhere((t) => t.code == code);
+            await tarifService.meublerTarifsPourTypeFrais(
+              idTypeFraisUuid: createdType.uuid,
+              idAnneeUuid: _selectedAnneeUuid!,
+              idClasseUuid: _selectedClasseUuid,
+              montant: montant,
+              periodicite: _periodicite,
+            );
+            ref.invalidate(tarifsFraisListProvider);
+          }
+        }
       } else {
         final modified = await service.modifierTypeFrais(
           _editingType!.idTypeFrais,
@@ -70,7 +95,7 @@ class _TypeFraisPageState extends ConsumerState<TypeFraisPage> {
         }
       }
 
-      ref.refresh(typesFraisListProvider);
+      ref.invalidate(typesFraisListProvider);
 
       if (mounted) {
         Navigator.of(context).pop();
@@ -78,7 +103,7 @@ class _TypeFraisPageState extends ConsumerState<TypeFraisPage> {
           SnackBar(
             content: Text(
               _editingType == null
-                  ? 'Type de frais ajouté avec succès'
+                  ? 'Type de frais et tarifs générés avec succès'
                   : 'Type de frais mis à jour avec succès',
             ),
           ),
@@ -101,113 +126,205 @@ class _TypeFraisPageState extends ConsumerState<TypeFraisPage> {
       _descriptionController.text = typeFrais.description ?? '';
       _periodicite = typeFrais.periodicite;
       _actif = typeFrais.actif;
+      _montantInitialController.clear();
+      _selectedAnneeUuid = null;
+      _selectedClasseUuid = null;
     } else {
       _editingType = null;
       _codeController.clear();
       _libelleController.clear();
       _descriptionController.clear();
+      _montantInitialController.clear();
       _periodicite = 'mensuel';
       _actif = true;
+      _selectedAnneeUuid = null;
+      _selectedClasseUuid = null;
     }
 
     await showDialog<void>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(
-            _editingType == null
-                ? 'Ajouter un type de frais'
-                : 'Modifier le type de frais',
-          ),
-          content: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextFormField(
-                    controller: _codeController,
-                    decoration: const InputDecoration(
-                      labelText: 'Code',
-                      hintText: 'Ex. SCOL, TRAN, CANT',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Veuillez saisir un code';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _libelleController,
-                    decoration: const InputDecoration(
-                      labelText: 'Libellé',
-                      hintText: 'Ex. Scolarité, Transport, Cantine',
-                    ),
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Veuillez saisir un libellé';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  TextFormField(
-                    controller: _descriptionController,
-                    decoration: const InputDecoration(
-                      labelText: 'Description (optionnel)',
-                    ),
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    value: _periodicite,
-                    decoration: const InputDecoration(labelText: 'Périodicité'),
-                    items: _periodicites.map((p) {
-                      return DropdownMenuItem<String>(value: p, child: Text(p));
-                    }).toList(),
-                    onChanged: (value) {
-                      setState(() {
-                        _periodicite = value!;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Veuillez sélectionner une périodicité';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            return AlertDialog(
+              title: Text(
+                _editingType == null
+                    ? 'Ajouter un type de frais'
+                    : 'Modifier le type de frais',
+              ),
+              content: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text('Actif'),
-                      const SizedBox(width: 12),
-                      Switch(
-                        value: _actif,
+                      TextFormField(
+                        controller: _codeController,
+                        decoration: const InputDecoration(
+                          labelText: 'Code',
+                          hintText: 'Ex. SCOL, TRAN, CANT',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Veuillez saisir un code';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _libelleController,
+                        decoration: const InputDecoration(
+                          labelText: 'Libellé',
+                          hintText: 'Ex. Scolarité, Transport, Cantine',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Veuillez saisir un libellé';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _descriptionController,
+                        decoration: const InputDecoration(
+                          labelText: 'Description (optionnel)',
+                        ),
+                        maxLines: 2,
+                      ),
+                      const SizedBox(height: 12),
+                      DropdownButtonFormField<String>(
+                        value: _periodicite,
+                        decoration: const InputDecoration(labelText: 'Périodicité'),
+                        items: _periodicites.map((p) {
+                          return DropdownMenuItem<String>(value: p, child: Text(p));
+                        }).toList(),
                         onChanged: (value) {
-                          setState(() {
-                            _actif = value;
+                          setStateDialog(() {
+                            _periodicite = value!;
                           });
                         },
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Veuillez sélectionner une périodicité';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 12),
+                      if (_editingType == null) ...[
+                        const Divider(),
+                        Text(
+                          _periodicite == 'trimestriel'
+                              ? '💡 Montant automatique pour chaque trimestre'
+                              : _periodicite == 'annuel' || _periodicite == 'mensuel'
+                                  ? '💡 Montant automatique pour chaque mois (M1-M10)'
+                                  : '💡 Montant du tarif unique',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue.shade700,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        TextFormField(
+                          controller: _montantInitialController,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            labelText: _periodicite == 'trimestriel'
+                                ? 'Montant par trimestre (optionnel)'
+                                : 'Montant par mois (optionnel)',
+                            prefixText: 'FCFA ',
+                            hintText: 'Ex. 50000',
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final anneesAsync = ref.watch(anneesListProvider);
+                            return anneesAsync.when(
+                              data: (annees) {
+                                return DropdownButtonFormField<String>(
+                                  value: _selectedAnneeUuid,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Année scolaire cible',
+                                  ),
+                                  items: annees.map((a) {
+                                    return DropdownMenuItem<String>(
+                                      value: a.uuid,
+                                      child: Text(a.libelleAnnee),
+                                    );
+                                  }).toList(),
+                                  onChanged: (val) {
+                                    setStateDialog(() => _selectedAnneeUuid = val);
+                                  },
+                                );
+                              },
+                              loading: () => const SizedBox(),
+                              error: (_, __) => const SizedBox(),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 8),
+                        Consumer(
+                          builder: (context, ref, child) {
+                            final classesAsync = ref.watch(classesListProvider);
+                            return classesAsync.when(
+                              data: (classes) {
+                                return DropdownButtonFormField<String>(
+                                  value: _selectedClasseUuid,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Classe cible (Toutes si vide)',
+                                  ),
+                                  items: classes.map((c) {
+                                    return DropdownMenuItem<String>(
+                                      value: c.uuid,
+                                      child: Text(c.nomClasse),
+                                    );
+                                  }).toList(),
+                                  onChanged: (val) {
+                                    setStateDialog(() => _selectedClasseUuid = val);
+                                  },
+                                );
+                              },
+                              loading: () => const SizedBox(),
+                              error: (_, __) => const SizedBox(),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      Row(
+                        children: [
+                          const Text('Actif'),
+                          const SizedBox(width: 12),
+                          Switch(
+                            value: _actif,
+                            onChanged: (value) {
+                              setStateDialog(() {
+                                _actif = value;
+                              });
+                            },
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Annuler'),
-            ),
-            ElevatedButton(
-              onPressed: _saveTypeFrais,
-              child: const Text('Enregistrer'),
-            ),
-          ],
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Annuler'),
+                ),
+                ElevatedButton(
+                  onPressed: _saveTypeFrais,
+                  child: const Text('Enregistrer'),
+                ),
+              ],
+            );
+          },
         );
       },
     );

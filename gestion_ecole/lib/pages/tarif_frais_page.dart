@@ -21,7 +21,10 @@ class _TarifFraisPageState extends ConsumerState<TarifFraisPage> {
   String? _selectedTypeFraisUuid;
   String? _selectedAnneeUuid;
   String? _selectedClasseUuid;
+  int _selectedTrimestre = 1;
   TarifsFrai? _editingTarif;
+
+  bool _genererToutesPeriodes = true;
 
   @override
   void dispose() {
@@ -37,20 +40,35 @@ class _TarifFraisPageState extends ConsumerState<TarifFraisPage> {
 
     try {
       if (_editingTarif == null) {
-        // ✅ Appel avec paramètres positionnels : toujours une classe sélectionnée
-        await service.ajouterTarif(
-          _selectedTypeFraisUuid!,
-          _selectedAnneeUuid!,
-          _selectedClasseUuid!, // ✅ Plus jamais null !
-          montant,
-        );
+        if (_genererToutesPeriodes && _selectedTypeFraisUuid != null) {
+          final types = ref.read(typesFraisListProvider).asData?.value ?? [];
+          final matching = types.where((t) => t.uuid == _selectedTypeFraisUuid).toList();
+          final periodicite = matching.isNotEmpty ? matching.first.periodicite : 'mensuel';
+
+          await service.meublerTarifsPourTypeFrais(
+            idTypeFraisUuid: _selectedTypeFraisUuid!,
+            idAnneeUuid: _selectedAnneeUuid!,
+            idClasseUuid: _selectedClasseUuid,
+            montant: montant,
+            periodicite: periodicite,
+          );
+        } else {
+          await service.ajouterTarif(
+            _selectedTypeFraisUuid!,
+            _selectedAnneeUuid!,
+            _selectedClasseUuid!,
+            montant,
+            trimestre: _selectedTrimestre,
+          );
+        }
       } else {
         final modified = await service.modifierTarif(
           _editingTarif!.idTarif,
           _selectedTypeFraisUuid!,
           _selectedAnneeUuid!,
-          _selectedClasseUuid!, // ✅ Plus jamais null !
+          _selectedClasseUuid!,
           montant,
+          trimestre: _selectedTrimestre,
         );
 
         if (!modified) {
@@ -58,7 +76,7 @@ class _TarifFraisPageState extends ConsumerState<TarifFraisPage> {
         }
       }
 
-      ref.refresh(tarifsFraisListProvider);
+      ref.invalidate(tarifsFraisListProvider);
 
       if (mounted) {
         Navigator.of(context).pop();
@@ -66,7 +84,7 @@ class _TarifFraisPageState extends ConsumerState<TarifFraisPage> {
           SnackBar(
             content: Text(
               _editingTarif == null
-                  ? 'Tarif ajouté avec succès'
+                  ? (_genererToutesPeriodes ? 'Tarifs de toutes les périodes générés avec succès' : 'Tarif ajouté avec succès')
                   : 'Tarif mis à jour avec succès',
             ),
           ),
@@ -86,194 +104,271 @@ class _TarifFraisPageState extends ConsumerState<TarifFraisPage> {
       _editingTarif = tarifFrais;
       _selectedTypeFraisUuid = tarifFrais.idTypeFraisUuid;
       _selectedAnneeUuid = tarifFrais.idAnneeUuid;
-      _selectedClasseUuid = tarifFrais.idClasseUuid; // ✅ Toujours non null
+      _selectedClasseUuid = tarifFrais.idClasseUuid;
+      _selectedTrimestre = tarifFrais.trimestre;
       _montantController.text = tarifFrais.montant.toString();
     } else {
       _editingTarif = null;
       _selectedTypeFraisUuid = null;
       _selectedAnneeUuid = null;
       _selectedClasseUuid = null;
+      _selectedTrimestre = 1;
       _montantController.clear();
     }
 
     await showDialog<void>(
       context: context,
       builder: (context) {
-        return AlertDialog(
-          title: Text(
-            _editingTarif == null ? 'Ajouter un tarif' : 'Modifier le tarif',
-          ),
-          content: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Type de frais
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final typesAsync = ref.watch(typesFraisListProvider);
-                      return typesAsync.when(
-                        data: (types) {
-                          if (types.isEmpty) {
-                            return const Text(
-                              'Aucun type de frais disponible. Veuillez en ajouter d\'abord.',
-                              style: TextStyle(color: Colors.red),
-                            );
-                          }
-                          return DropdownButtonFormField<String>(
-                            value: _selectedTypeFraisUuid,
-                            decoration: const InputDecoration(
-                              labelText: 'Type de frais',
-                            ),
-                            items: types.map((t) {
-                              return DropdownMenuItem<String>(
-                                value: t.uuid,
-                                child: Text('${t.code} - ${t.libelle}'),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedTypeFraisUuid = value;
-                              });
-                            },
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Veuillez sélectionner un type de frais';
-                              }
-                              return null;
-                            },
-                          );
-                        },
-                        loading: () => const CircularProgressIndicator(),
-                        error: (e, _) => Text('Erreur: $e'),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
+        return StatefulBuilder(
+          builder: (context, setStateDialog) {
+            final types = ref.watch(typesFraisListProvider).asData?.value ?? [];
+            final selectedType = types.where((t) => t.uuid == _selectedTypeFraisUuid).toList();
+            final periodicite = selectedType.isNotEmpty ? selectedType.first.periodicite : 'mensuel';
 
-                  // Année scolaire
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final anneesAsync = ref.watch(anneesListProvider);
-                      return anneesAsync.when(
-                        data: (annees) {
-                          if (annees.isEmpty) {
-                            return const Text(
-                              'Aucune année scolaire disponible.',
-                              style: TextStyle(color: Colors.red),
-                            );
-                          }
-                          return DropdownButtonFormField<String>(
-                            value: _selectedAnneeUuid,
-                            decoration: const InputDecoration(
-                              labelText: 'Année scolaire',
-                            ),
-                            items: annees.map((a) {
-                              return DropdownMenuItem<String>(
-                                value: a.uuid,
-                                child: Text(a.libelleAnnee),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedAnneeUuid = value;
-                              });
-                            },
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Veuillez sélectionner une année';
-                              }
-                              return null;
-                            },
-                          );
-                        },
-                        loading: () => const CircularProgressIndicator(),
-                        error: (e, _) => Text('Erreur: $e'),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-
-                  // ⚠️ Suppression du switch "Appliquer à toutes les classes"
-                  // La sélection de la classe est désormais OBLIGATOIRE
-
-                  // Classe (obligatoire)
-                  Consumer(
-                    builder: (context, ref, child) {
-                      final classesAsync = ref.watch(classesListProvider);
-                      return classesAsync.when(
-                        data: (classes) {
-                          if (classes.isEmpty) {
-                            return const Text(
-                              'Aucune classe disponible.',
-                              style: TextStyle(color: Colors.red),
-                            );
-                          }
-                          return DropdownButtonFormField<String>(
-                            value: _selectedClasseUuid,
-                            decoration: const InputDecoration(
-                              labelText: 'Classe (obligatoire)',
-                            ),
-                            items: classes.map((c) {
-                              return DropdownMenuItem<String>(
-                                value: c.uuid,
-                                child: Text(c.nomClasse),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedClasseUuid = value;
-                              });
-                            },
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Veuillez sélectionner une classe';
-                              }
-                              return null;
-                            },
-                          );
-                        },
-                        loading: () => const CircularProgressIndicator(),
-                        error: (e, _) => Text('Erreur: $e'),
-                      );
-                    },
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Montant
-                  TextFormField(
-                    controller: _montantController,
-                    decoration: const InputDecoration(
-                      labelText: 'Montant',
-                      hintText: 'Ex. 15000',
-                      prefixText: 'FCFA ',
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.trim().isEmpty) {
-                        return 'Veuillez saisir un montant';
-                      }
-                      if (double.tryParse(value.trim()) == null) {
-                        return 'Veuillez saisir un nombre valide';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
+            return AlertDialog(
+              title: Text(
+                _editingTarif == null ? 'Ajouter un tarif' : 'Modifier le tarif',
               ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(),
-              child: const Text('Annuler'),
-            ),
-            ElevatedButton(
-              onPressed: _saveTarifFrais,
-              child: const Text('Enregistrer'),
-            ),
-          ],
+              content: Form(
+                key: _formKey,
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Type de frais
+                      Consumer(
+                        builder: (context, ref, child) {
+                          final typesAsync = ref.watch(typesFraisListProvider);
+                          return typesAsync.when(
+                            data: (types) {
+                              if (types.isEmpty) {
+                                return const Text(
+                                  'Aucun type de frais disponible. Veuillez en ajouter d\'abord.',
+                                  style: TextStyle(color: Colors.red),
+                                );
+                              }
+                              return DropdownButtonFormField<String>(
+                                value: _selectedTypeFraisUuid,
+                                decoration: const InputDecoration(
+                                  labelText: 'Type de frais',
+                                ),
+                                items: types.map((t) {
+                                  return DropdownMenuItem<String>(
+                                    value: t.uuid,
+                                    child: Text('${t.code} - ${t.libelle} (${t.periodicite})'),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedTypeFraisUuid = value;
+                                  });
+                                  setStateDialog(() {
+                                    _selectedTrimestre = 1;
+                                  });
+                                },
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Veuillez sélectionner un type de frais';
+                                  }
+                                  return null;
+                                },
+                              );
+                            },
+                            loading: () => const CircularProgressIndicator(),
+                            error: (e, _) => Text('Erreur: $e'),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Mode de génération (Tout auto ou une seule période)
+                      if (_editingTarif == null && _selectedTypeFraisUuid != null) ...[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                periodicite == 'trimestriel'
+                                    ? 'Générer automatiquement pour les 3 trimestres'
+                                    : periodicite == 'annuel' || periodicite == 'mensuel'
+                                        ? 'Générer automatiquement pour les 10 mois'
+                                        : 'Versement unique',
+                                style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13),
+                              ),
+                            ),
+                            Switch(
+                              value: _genererToutesPeriodes,
+                              onChanged: (val) {
+                                setStateDialog(() => _genererToutesPeriodes = val);
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+
+                      // Sélection de la Période / Trimestre
+                      if (_selectedTypeFraisUuid != null && (!_genererToutesPeriodes || _editingTarif != null)) ...[
+                        if (periodicite == 'trimestriel')
+                          DropdownButtonFormField<int>(
+                            value: _selectedTrimestre,
+                            decoration: const InputDecoration(
+                              labelText: 'Trimestre concerné',
+                            ),
+                            items: const [
+                              DropdownMenuItem(value: 1, child: Text('Trimestre 1 (T1)')),
+                              DropdownMenuItem(value: 2, child: Text('Trimestre 2 (T2)')),
+                              DropdownMenuItem(value: 3, child: Text('Trimestre 3 (T3)')),
+                            ],
+                            onChanged: (val) {
+                              if (val != null) setStateDialog(() => _selectedTrimestre = val);
+                            },
+                          )
+                        else if (periodicite == 'mensuel' || periodicite == 'annuel')
+                          DropdownButtonFormField<int>(
+                            value: _selectedTrimestre,
+                            decoration: const InputDecoration(
+                              labelText: 'Mois / Tranche concernée',
+                            ),
+                            items: const [
+                              DropdownMenuItem(value: 1, child: Text('Mois 1 (Septembre)')),
+                              DropdownMenuItem(value: 2, child: Text('Mois 2 (Octobre)')),
+                              DropdownMenuItem(value: 3, child: Text('Mois 3 (Novembre)')),
+                              DropdownMenuItem(value: 4, child: Text('Mois 4 (Décembre)')),
+                              DropdownMenuItem(value: 5, child: Text('Mois 5 (Janvier)')),
+                              DropdownMenuItem(value: 6, child: Text('Mois 6 (Février)')),
+                              DropdownMenuItem(value: 7, child: Text('Mois 7 (Mars)')),
+                              DropdownMenuItem(value: 8, child: Text('Mois 8 (Avril)')),
+                              DropdownMenuItem(value: 9, child: Text('Mois 9 (Mai)')),
+                              DropdownMenuItem(value: 10, child: Text('Mois 10 (Juin)')),
+                            ],
+                            onChanged: (val) {
+                              if (val != null) setStateDialog(() => _selectedTrimestre = val);
+                            },
+                          ),
+                        const SizedBox(height: 12),
+                      ],
+
+                      // Année scolaire
+                      Consumer(
+                        builder: (context, ref, child) {
+                          final anneesAsync = ref.watch(anneesListProvider);
+                          return anneesAsync.when(
+                            data: (annees) {
+                              if (annees.isEmpty) {
+                                return const Text(
+                                  'Aucune année scolaire disponible.',
+                                  style: TextStyle(color: Colors.red),
+                                );
+                              }
+                              return DropdownButtonFormField<String>(
+                                value: _selectedAnneeUuid,
+                                decoration: const InputDecoration(
+                                  labelText: 'Année scolaire',
+                                ),
+                                items: annees.map((a) {
+                                  return DropdownMenuItem<String>(
+                                    value: a.uuid,
+                                    child: Text(a.libelleAnnee),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedAnneeUuid = value;
+                                  });
+                                },
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Veuillez sélectionner une année';
+                                  }
+                                  return null;
+                                },
+                              );
+                            },
+                            loading: () => const CircularProgressIndicator(),
+                            error: (e, _) => Text('Erreur: $e'),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Classe (obligatoire)
+                      Consumer(
+                        builder: (context, ref, child) {
+                          final classesAsync = ref.watch(classesListProvider);
+                          return classesAsync.when(
+                            data: (classes) {
+                              if (classes.isEmpty) {
+                                return const Text(
+                                  'Aucune classe disponible.',
+                                  style: TextStyle(color: Colors.red),
+                                );
+                              }
+                              return DropdownButtonFormField<String>(
+                                value: _selectedClasseUuid,
+                                decoration: const InputDecoration(
+                                  labelText: 'Classe (obligatoire)',
+                                ),
+                                items: classes.map((c) {
+                                  return DropdownMenuItem<String>(
+                                    value: c.uuid,
+                                    child: Text(c.nomClasse),
+                                  );
+                                }).toList(),
+                                onChanged: (value) {
+                                  setState(() {
+                                    _selectedClasseUuid = value;
+                                  });
+                                },
+                                validator: (value) {
+                                  if (value == null || value.isEmpty) {
+                                    return 'Veuillez sélectionner une classe';
+                                  }
+                                  return null;
+                                },
+                              );
+                            },
+                            loading: () => const CircularProgressIndicator(),
+                            error: (e, _) => Text('Erreur: $e'),
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 12),
+
+                      // Montant
+                      TextFormField(
+                        controller: _montantController,
+                        decoration: const InputDecoration(
+                          labelText: 'Montant du tarif',
+                          hintText: 'Ex. 15000',
+                          prefixText: 'FCFA ',
+                        ),
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.trim().isEmpty) {
+                            return 'Veuillez saisir un montant';
+                          }
+                          if (double.tryParse(value.trim()) == null) {
+                            return 'Veuillez saisir un nombre valide';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Annuler'),
+                ),
+                ElevatedButton(
+                  onPressed: _saveTarifFrais,
+                  child: const Text('Enregistrer'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
@@ -355,6 +450,28 @@ class _TarifFraisPageState extends ConsumerState<TarifFraisPage> {
     return classe.nomClasse;
   }
 
+  String _getPeriodText(TarifsFrai tarif) {
+    final types = ref.read(typesFraisListProvider).asData?.value ?? [];
+    final matching = types.where((t) => t.uuid == tarif.idTypeFraisUuid).toList();
+    if (matching.isEmpty) return 'Période : T${tarif.trimestre}';
+    final periodicite = matching.first.periodicite;
+
+    if (periodicite == 'trimestriel') {
+      return 'Période : Trimestre ${tarif.trimestre} (T${tarif.trimestre})';
+    } else if (periodicite == 'mensuel' || periodicite == 'annuel') {
+      final moisNames = [
+        'Septembre', 'Octobre', 'Novembre', 'Décembre', 'Janvier',
+        'Février', 'Mars', 'Avril', 'Mai', 'Juin'
+      ];
+      final moisLabel = (tarif.trimestre >= 1 && tarif.trimestre <= moisNames.length)
+          ? moisNames[tarif.trimestre - 1]
+          : '${tarif.trimestre}';
+      return 'Période : Mois ${tarif.trimestre} ($moisLabel)';
+    } else {
+      return 'Période : Versement Unique';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final tarifsAsync = ref.watch(tarifsFraisListProvider);
@@ -366,7 +483,7 @@ class _TarifFraisPageState extends ConsumerState<TarifFraisPage> {
           IconButton(
             icon: const Icon(Icons.sync),
             onPressed: () {
-              ref.refresh(tarifsFraisListProvider);
+              ref.invalidate(tarifsFraisListProvider);
             },
           ),
         ],
@@ -412,6 +529,7 @@ class _TarifFraisPageState extends ConsumerState<TarifFraisPage> {
                   subtitle: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Text(_getPeriodText(tarif), style: const TextStyle(color: Colors.indigo, fontWeight: FontWeight.w500)),
                       Text('Année: ${_getAnneeLibelle(tarif.idAnneeUuid)}'),
                       Text('Classe: ${_getClasseLibelle(tarif.idClasseUuid)}'),
                       Text(

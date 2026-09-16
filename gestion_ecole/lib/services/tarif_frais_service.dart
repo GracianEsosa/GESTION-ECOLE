@@ -18,9 +18,10 @@ class TarifFraisService {
   Future<int> ajouterTarif(
     String idTypeFraisUuid,
     String idAnneeUuid,
-    String idClasseUuid, // ✅ Non nullable
-    double montant,
-  ) async {
+    String idClasseUuid,
+    double montant, {
+    int trimestre = 1,
+  }) async {
     return await db
         .into(db.tarifsFrais)
         .insert(
@@ -28,11 +29,52 @@ class TarifFraisService {
             uuid: _uuid.v4(),
             idTypeFraisUuid: idTypeFraisUuid,
             idAnneeUuid: idAnneeUuid,
-            idClasseUuid: Value(idClasseUuid), // ✅ Non nullable
+            idClasseUuid: Value(idClasseUuid),
             montant: montant,
+            trimestre: Value(trimestre),
           ),
         );
   }
+
+  /// Génère les tarifs pour toutes les périodes (trimestres 1-3 ou mois 1-10)
+  Future<void> meublerTarifsPourTypeFrais({
+    required String idTypeFraisUuid,
+    required String idAnneeUuid,
+    String? idClasseUuid,
+    required double montant,
+    required String periodicite,
+  }) async {
+    if (periodicite == 'trimestriel') {
+      for (int t = 1; t <= 3; t++) {
+        await ajouterTarif(
+          idTypeFraisUuid,
+          idAnneeUuid,
+          idClasseUuid ?? '',
+          montant,
+          trimestre: t,
+        );
+      }
+    } else if (periodicite == 'annuel' || periodicite == 'mensuel') {
+      for (int m = 1; m <= 10; m++) {
+        await ajouterTarif(
+          idTypeFraisUuid,
+          idAnneeUuid,
+          idClasseUuid ?? '',
+          montant,
+          trimestre: m,
+        );
+      }
+    } else {
+      await ajouterTarif(
+        idTypeFraisUuid,
+        idAnneeUuid,
+        idClasseUuid ?? '',
+        montant,
+        trimestre: 1,
+      );
+    }
+  }
+
   //////////////////////////////////////////////////////
   /// LISTE
   //////////////////////////////////////////////////////
@@ -48,8 +90,6 @@ class TarifFraisService {
   //////////////////////////////////////////////////////
 
   Future<List<TarifsFrai>> rechercherTarifs(String motCle) async {
-    // On peut filtrer par montant ou par type de frais via une sous-requête
-    // mais pour l'instant on retourne tous les tarifs
     return await (db.select(db.tarifsFrais)).get();
   }
 
@@ -62,8 +102,9 @@ class TarifFraisService {
     String idTypeFraisUuid,
     String idAnneeUuid,
     String? idClasseUuid,
-    double montant,
-  ) async {
+    double montant, {
+    int trimestre = 1,
+  }) async {
     final existing = await (db.select(
       db.tarifsFrais,
     )..where((tbl) => tbl.idTarif.equals(idTarif))).getSingleOrNull();
@@ -80,6 +121,7 @@ class TarifFraisService {
             idAnneeUuid: idAnneeUuid,
             idClasseUuid: Value(idClasseUuid),
             montant: montant,
+            trimestre: trimestre,
             isSynced: false,
             updatedAt: DateTime.now(),
           ),

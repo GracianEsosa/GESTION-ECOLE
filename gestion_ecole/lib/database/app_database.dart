@@ -154,3 +154,12 @@ class AppDatabase extends _$AppDatabase {
   @override
   int get schemaVersion => 4; // incrémenté
 }
+
+// ============================================================
+/// ALIAS DE TYPES POUR COMPATIBILITÉ (Frais / Tarif / Type)
+// ============================================================
+typedef TypeFrais = TypesFrai;
+typedef TypesFraisData = TypesFrai;
+
+typedef TarifFrais = TarifsFrai;
+typedef TarifsFraisData = TarifsFrai;

@@ -14,14 +14,14 @@ final paiementServiceProvider = Provider<PaiementService>((ref) {
 });
 
 ////////////////////////////////////////////////////
-/// LISTE DES PAIEMENTS
+/// LISTE DES PAIEMENTS (FLUX RÉACTIF EN TEMPS RÉEL)
 ////////////////////////////////////////////////////
 
-final paiementsListProvider = FutureProvider<List<PaiementInscription>>((
+final paiementsListProvider = StreamProvider<List<PaiementInscription>>((
   ref,
-) async {
+) {
   final service = ref.watch(paiementServiceProvider);
-  return service.getPaiements();
+  return service.watchPaiements();
 });
 
 ////////////////////////////////////////////////////
@@ -36,16 +36,16 @@ final unsyncedPaiementsProvider = FutureProvider<List<PaiementInscription>>((
 });
 
 ////////////////////////////////////////////////////
-/// PAIEMENTS PAR INSCRIPTION
+/// PAIEMENTS PAR INSCRIPTION (FLUX RÉACTIF EN TEMPS RÉEL)
 ////////////////////////////////////////////////////
 
 final paiementsByInscriptionProvider =
-    FutureProvider.family<List<PaiementInscription>, String>((
+    StreamProvider.family<List<PaiementInscription>, String>((
       ref,
       idInscriptionUuid,
-    ) async {
+    ) {
       final service = ref.watch(paiementServiceProvider);
-      return service.rechercherPaiementsParInscription(idInscriptionUuid);
+      return service.watchPaiementsParInscription(idInscriptionUuid);
     });
 
 ////////////////////////////////////////////////////
