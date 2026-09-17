@@ -11,6 +11,8 @@ import 'pages/classe_page.dart';
 import 'pages/option_page.dart';
 import 'pages/paiement_page.dart';
 import 'pages/annee_page.dart';
+import 'pages/refoulement_page.dart';
+import 'pages/ecole_page.dart';
 
 // 🆕 Import des nouvelles pages (sans factures)
 import 'pages/type_frais_page.dart';
@@ -52,6 +54,7 @@ class _HomePageState extends State<HomePage> {
 
   // Menu sans "Factures"
   final List<Map<String, dynamic>> menuItems = const [
+    {'label': 'École', 'icon': Icons.school},
     {'label': 'Dashboard', 'icon': Icons.dashboard},
     {'label': 'Rapports', 'icon': Icons.bar_chart},
     {'label': 'Inscriptions', 'icon': Icons.person_add},
@@ -62,10 +65,12 @@ class _HomePageState extends State<HomePage> {
     {'label': 'Types de frais', 'icon': Icons.label_important}, // 🆕
     {'label': 'Tarifs', 'icon': Icons.attach_money}, // 🆕
     {'label': 'Années', 'icon': Icons.calendar_month},
+    {'label': 'Refoulement', 'icon': Icons.assessment},
   ];
 
   // Pages correspondantes (sans FactureListPage)
   final List<Widget> pages = const [
+    EcolePage(),
     DashboardPage(),
     ReportPage(),
     InscriptionPage(),
@@ -76,6 +81,7 @@ class _HomePageState extends State<HomePage> {
     TypeFraisPage(), // 🆕
     TarifFraisPage(), // 🆕
     AnneePage(),
+    RefoulementPage(),
   ];
 
   @override

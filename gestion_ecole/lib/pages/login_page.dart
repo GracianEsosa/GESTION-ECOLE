@@ -40,15 +40,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       password,
     );
 
+    if (!mounted) return;
     setState(() {
       _isLoading = false;
     });
 
     if (utilisateur != null) {
-      if (!mounted) return;
       Navigator.of(context).pushReplacementNamed('/home');
     } else {
-      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Nom d\'utilisateur ou mot de passe incorrect'),

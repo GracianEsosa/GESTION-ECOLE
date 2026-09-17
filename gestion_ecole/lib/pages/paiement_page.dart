@@ -2,10 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 import '../database/app_database.dart';
 import '../providers/annee_provider.dart';
+import '../providers/classe_provider.dart';
+import '../providers/ecole_provider.dart';
 import '../providers/inscription_provider.dart';
+import '../providers/option_provider.dart';
 import '../providers/paiement_provider.dart';
 import '../providers/tarif_frais_provider.dart';
 import '../providers/type_frais_provider.dart';
@@ -25,9 +31,15 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
   // Variables d'état
   DateTime _selectedDate = DateTime.now();
   String? _selectedInscriptionUuid;
+  String? _selectedOptionUuid;
+  String? _selectedClasseUuid;
   String? _selectedTarifUuid;
   String? _selectedMode;
   PaiementInscription? _editingPaiement;
+  double _dejaPaye = 0.0;
+  double _montantTarif = 0.0;
+  bool _isLoading = false;
+  String? _blockingMessage;
 
   // Modes de paiement disponibles
   static const List<String> _paymentModes = [
@@ -121,7 +133,6 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
     required String motif,
     required DateTime date,
   }) {
-    final now = DateTime.now();
     final buffer = StringBuffer();
 
     void sep({String char = '='}) => buffer.writeln(char * 32);
@@ -137,7 +148,7 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
     center('**********************');
     center('Reçu de paiement');
     sep();
-    buffer.writeln('Date : ${DateFormat('dd/MM/yyyy HH:mm').format(now)}');
+    buffer.writeln('Date : ${DateFormat('dd/MM/yyyy HH:mm').format(date)}');
     buffer.writeln('Élève : $eleve');
     buffer.writeln('Tarif : $tarif');
     buffer.writeln('Trimestre : $trimestre');
@@ -149,6 +160,67 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
     sep();
     buffer.writeln('');
     return buffer.toString();
+  }
+
+  Future<void> _printReceipt({
+    required String eleve,
+    required String tarif,
+    required String trimestre,
+    required double montant,
+    required String mode,
+    required String motif,
+    required DateTime date,
+  }) async {
+    final ecole = await ref.read(ecoleProvider.future);
+    final nomEcole = ecole?.nom ?? 'ECOLE GESTION SCOLAIRE';
+    final document = pw.Document();
+    final amount = '${montant.toStringAsFixed(0)} FCFA';
+    final pageFormat = PdfPageFormat(
+      80 * PdfPageFormat.mm,
+      200 * PdfPageFormat.mm,
+      marginAll: 6 * PdfPageFormat.mm,
+    );
+
+    pw.Widget line(String label, String value) => pw.Padding(
+      padding: const pw.EdgeInsets.only(bottom: 4),
+      child: pw.Text('$label : $value', style: const pw.TextStyle(fontSize: 9)),
+    );
+
+    document.addPage(
+      pw.Page(
+        pageFormat: pageFormat,
+        build: (_) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+          children: [
+            pw.Center(
+              child: pw.Text(
+                nomEcole,
+                style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+              ),
+            ),
+            pw.Center(child: pw.Text('RECU DE PAIEMENT', style: const pw.TextStyle(fontSize: 10))),
+            pw.SizedBox(height: 8),
+            pw.Divider(),
+            line('Date', DateFormat('dd/MM/yyyy HH:mm').format(date)),
+            line('Eleve', eleve),
+            line('Frais', tarif),
+            line('Periode', trimestre),
+            line('Montant', amount),
+            line('Mode', mode),
+            if (motif.isNotEmpty) line('Motif', motif),
+            pw.Divider(),
+            pw.SizedBox(height: 8),
+            pw.Center(child: pw.Text('Merci pour votre paiement !', style: const pw.TextStyle(fontSize: 9))),
+          ],
+        ),
+      ),
+    );
+
+    await Printing.layoutPdf(
+      name: 'recu_${DateFormat('yyyyMMdd_HHmmss').format(date)}',
+      format: pageFormat,
+      onLayout: (_) => document.save(),
+    );
   }
 
   // ============================================================
@@ -198,13 +270,24 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
           ),
           actions: [
             ElevatedButton.icon(
-              onPressed: () {
-                // TODO : Connecter une imprimante thermique
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Impression en développement...'),
-                  ),
-                );
+              onPressed: () async {
+                try {
+                  await _printReceipt(
+                    eleve: eleve,
+                    tarif: tarif,
+                    trimestre: trimestre,
+                    montant: montant,
+                    mode: mode,
+                    motif: motif,
+                    date: date,
+                  );
+                } catch (error) {
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Impossible d’imprimer : $error')),
+                    );
+                  }
+                }
               },
               icon: const Icon(Icons.print),
               label: const Text('Imprimer'),
@@ -341,6 +424,14 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
   // ============================================================
   Future<void> _savePaiement() async {
     if (!_formKey.currentState!.validate()) return;
+    if (_selectedInscriptionUuid == null ||
+        _selectedTarifUuid == null ||
+        _selectedMode == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Veuillez compléter les champs requis')),
+      );
+      return;
+    }
 
     final montant = double.tryParse(_montantController.text.trim()) ?? 0.0;
     final motif = _motifController.text.trim();
@@ -417,19 +508,6 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
       final inscription = await _getInscription(_selectedInscriptionUuid!);
       final type = await _getTypeFrais(tarif.idTypeFraisUuid);
 
-      if (inscription != null && type != null && mounted) {
-        _showTicketDialog(
-          eleve: '${inscription.nomEleve} ${inscription.prenomEleve}',
-          tarif: type.libelle,
-          trimestre: 'T${tarif.trimestre}',
-          montant: montant,
-          mode: _selectedMode!,
-          motif: motif,
-          date: _selectedDate,
-        );
-      }
-
-      // Fermer le dialogue de saisie
       if (mounted) {
         Navigator.of(context).pop();
         ScaffoldMessenger.of(context).showSnackBar(
@@ -441,6 +519,17 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
             ),
           ),
         );
+        if (inscription != null && type != null) {
+          _showTicketDialog(
+            eleve: '${inscription.nomEleve} ${inscription.prenomEleve}',
+            tarif: type.libelle,
+            trimestre: 'T${tarif.trimestre}',
+            montant: montant,
+            mode: _selectedMode!,
+            motif: motif,
+            date: _selectedDate,
+          );
+        }
       }
     } catch (error) {
       if (mounted) {
@@ -454,7 +543,7 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
   // ============================================================
   //  Dialogue d'ajout / modification
   // ============================================================
-  void _openPaiementDialog([PaiementInscription? paiement]) {
+  Future<void> _openPaiementDialog([PaiementInscription? paiement]) async {
     if (paiement != null) {
       _editingPaiement = paiement;
       _selectedInscriptionUuid = paiement.idInscriptionUuid;
@@ -463,40 +552,60 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
       _montantController.text = paiement.montantPaye.toString();
       _motifController.text = paiement.motifPaiement;
       _selectedDate = paiement.datePaiement;
+      final inscriptions = await ref.read(inscriptionsListProvider.future);
+      final matchingInscriptions = inscriptions
+          .where((item) => item.uuid == paiement.idInscriptionUuid)
+          .toList();
+      final inscription = matchingInscriptions.isEmpty
+          ? null
+          : matchingInscriptions.first;
+      _selectedClasseUuid = inscription?.idClasseUuid;
+      if (_selectedClasseUuid != null) {
+        final classes = await ref.read(classesListProvider.future);
+        final matchingClasses = classes
+            .where((item) => item.uuid == _selectedClasseUuid)
+            .toList();
+        _selectedOptionUuid = matchingClasses.isEmpty
+            ? null
+            : matchingClasses.first.idOptionUuid;
+      }
     } else {
       _editingPaiement = null;
       _selectedInscriptionUuid = null;
+      _selectedOptionUuid = null;
+      _selectedClasseUuid = null;
       _selectedTarifUuid = null;
       _selectedMode = null;
       _montantController.clear();
       _motifController.clear();
       _selectedDate = DateTime.now();
     }
+    _dejaPaye = 0.0;
+    _montantTarif = 0.0;
+    _isLoading = false;
+    _blockingMessage = null;
 
     showDialog<void>(
       context: context,
       builder: (context) {
         final inscriptionsAsync = ref.watch(inscriptionsListProvider);
+        final optionsAsync = ref.watch(optionsListProvider);
+        final classesAsync = ref.watch(classesListProvider);
 
         return StatefulBuilder(
           builder: (context, setStateDialog) {
             // État local pour le calcul du restant dû et blocage
-            double dejaPayeVal = 0.0;
-            double montantTarifVal = 0.0;
-            String? blockingMessageVal;
-            bool isLoadingVal = false;
-
             Future<void> refreshCalculs() async {
               if (_selectedTarifUuid == null ||
                   _selectedInscriptionUuid == null) {
                 setStateDialog(() {
-                  dejaPayeVal = 0.0;
-                  montantTarifVal = 0.0;
-                  blockingMessageVal = null;
+                  _dejaPaye = 0.0;
+                  _montantTarif = 0.0;
+                  _blockingMessage = null;
                 });
                 return;
               }
-              setStateDialog(() => isLoadingVal = true);
+              setStateDialog(() => _isLoading = true);
               try {
                 final tarif = await _getSelectedTarif();
                 final dejaPaye = await _getDejaPaye();
@@ -505,26 +614,26 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
                   _selectedTarifUuid!,
                 );
                 setStateDialog(() {
-                  montantTarifVal = tarif?.montant ?? 0.0;
-                  dejaPayeVal = dejaPaye;
-                  blockingMessageVal = blockReason;
-                  isLoadingVal = false;
+                  _montantTarif = tarif?.montant ?? 0.0;
+                  _dejaPaye = dejaPaye;
+                  _blockingMessage = blockReason;
+                  _isLoading = false;
                 });
               } catch (e) {
-                setStateDialog(() => isLoadingVal = false);
+                setStateDialog(() => _isLoading = false);
               }
             }
 
             // Charger au démarrage du dialogue
             if (_editingPaiement != null || _selectedTarifUuid != null) {
               WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (!isLoadingVal) {
+                if (!_isLoading) {
                   refreshCalculs();
                 }
               });
             }
 
-            final restant = montantTarifVal - dejaPayeVal;
+            final restant = _montantTarif - _dejaPaye;
 
             return AlertDialog(
               title: Text(
@@ -538,7 +647,7 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (blockingMessageVal != null) ...[
+                      if (_blockingMessage != null) ...[
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
@@ -552,7 +661,7 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
-                                  blockingMessageVal!,
+                                  _blockingMessage!,
                                   style: const TextStyle(
                                     color: Colors.red,
                                     fontWeight: FontWeight.bold,
@@ -565,15 +674,73 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
                         ),
                         const SizedBox(height: 12),
                       ],
-                      // 1. Inscription
-                      inscriptionsAsync.when(
+                      // 1. Option
+                      optionsAsync.when(
+                        data: (options) => DropdownButtonFormField<String>(
+                          value: _selectedOptionUuid,
+                          decoration: const InputDecoration(labelText: 'Option'),
+                          items: options.map((option) => DropdownMenuItem<String>(
+                            value: option.uuid,
+                            child: Text(option.nomOption),
+                          )).toList(),
+                          onChanged: (value) => setStateDialog(() {
+                            _selectedOptionUuid = value;
+                            _selectedClasseUuid = null;
+                            _selectedInscriptionUuid = null;
+                            _selectedTarifUuid = null;
+                          }),
+                          validator: (value) => value == null
+                              ? 'Veuillez sélectionner une option'
+                              : null,
+                        ),
+                        loading: () => const CircularProgressIndicator(),
+                        error: (error, stack) => Text('Erreur : $error'),
+                      ),
+                      const SizedBox(height: 12),
+
+                      // 2. Classe de l'option choisie
+                      if (_selectedOptionUuid != null)
+                        classesAsync.when(
+                          data: (classes) {
+                            final filteredClasses = classes.where(
+                              (classe) => classe.idOptionUuid == _selectedOptionUuid,
+                            ).toList();
+                            return DropdownButtonFormField<String>(
+                              value: _selectedClasseUuid,
+                              decoration: const InputDecoration(labelText: 'Classe'),
+                              items: filteredClasses.map((classe) => DropdownMenuItem<String>(
+                                value: classe.uuid,
+                                child: Text(classe.nomClasse),
+                              )).toList(),
+                              onChanged: (value) => setStateDialog(() {
+                                _selectedClasseUuid = value;
+                                _selectedInscriptionUuid = null;
+                                _selectedTarifUuid = null;
+                              }),
+                              validator: (value) => value == null
+                                  ? 'Veuillez sélectionner une classe'
+                                  : null,
+                            );
+                          },
+                          loading: () => const CircularProgressIndicator(),
+                          error: (error, stack) => Text('Erreur : $error'),
+                        ),
+                      if (_selectedOptionUuid != null)
+                        const SizedBox(height: 12),
+
+                      // 3. Élève inscrit dans la classe choisie
+                      if (_selectedClasseUuid != null)
+                        inscriptionsAsync.when(
                         data: (inscriptions) {
                           return DropdownButtonFormField<String>(
                             value: _selectedInscriptionUuid,
                             decoration: const InputDecoration(
-                              labelText: 'Inscription (élève)',
+                              labelText: 'Élève inscrit',
                             ),
-                            items: inscriptions.map((item) {
+                            items: inscriptions
+                                .where((item) =>
+                                    item.idClasseUuid == _selectedClasseUuid)
+                                .map((item) {
                               return DropdownMenuItem<String>(
                                 value: item.uuid,
                                 child: Text(
@@ -582,13 +749,12 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
                               );
                             }).toList(),
                             onChanged: (value) {
-                              setState(() {
+                              setStateDialog(() {
                                 _selectedInscriptionUuid = value;
                                 _selectedTarifUuid = null;
-                              });
-                              setStateDialog(() {
                                 _dejaPaye = 0.0;
                                 _montantTarif = 0.0;
+                                _blockingMessage = null;
                               });
                             },
                             validator: (value) {
@@ -675,10 +841,10 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
                                 );
                               }).toList(),
                               onChanged: (value) {
-                                setState(() {
+                                setStateDialog(() {
                                   _selectedTarifUuid = value;
                                 });
-                                _refreshCalculs();
+                                refreshCalculs();
                               },
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
@@ -1057,13 +1223,13 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
                         matchingTarifs.isNotEmpty ? matchingTarifs.first : null;
 
                     String tarifLabel = 'Tarif inconnu';
+                    TypesFrai? type;
                     if (tarif != null) {
                       final types = typesAsync.asData?.value ?? [];
                       final matchingTypes = types
                           .where((t) => t.uuid == tarif.idTypeFraisUuid)
                           .toList();
-                      final TypesFrai? type =
-                          matchingTypes.isNotEmpty ? matchingTypes.first : null;
+                      type = matchingTypes.isNotEmpty ? matchingTypes.first : null;
 
                       if (type != null) {
                         tarifLabel =
@@ -1240,6 +1406,25 @@ class _PaiementPageState extends ConsumerState<PaiementPage> {
                                 ),
                                 Row(
                                   children: [
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.print,
+                                        size: 20,
+                                        color: Colors.deepPurple,
+                                      ),
+                                      onPressed: () => _printReceipt(
+                                        eleve: inscriptionLabel,
+                                        tarif: type?.libelle ?? tarifLabel,
+                                        trimestre: tarif == null
+                                            ? '-'
+                                            : 'T${tarif.trimestre}',
+                                        montant: paiement.montantPaye,
+                                        mode: paiement.modePaiement,
+                                        motif: paiement.motifPaiement,
+                                        date: paiement.datePaiement,
+                                      ),
+                                      tooltip: 'Imprimer le reçu',
+                                    ),
                                     IconButton(
                                       icon: const Icon(
                                         Icons.edit,

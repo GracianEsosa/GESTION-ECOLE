@@ -95,6 +95,18 @@ class Utilisateurs extends Table {
   DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
 }
 
+/// Informations de l'établissement (un seul enregistrement est utilisé).
+class Ecoles extends Table {
+  IntColumn get idEcole => integer().autoIncrement()();
+  TextColumn get nom => text()();
+  TextColumn get adresse => text().nullable()();
+  TextColumn get telephone => text().nullable()();
+  TextColumn get email => text().nullable()();
+  TextColumn get devise => text().withDefault(const Constant('FCFA'))();
+  TextColumn get logoPath => text().nullable()();
+  DateTimeColumn get updatedAt => dateTime().withDefault(currentDateAndTime)();
+}
+
 // ============================================================
 // 🆕 NOUVELLES TABLES POUR LA GESTION DES FRAIS SCOLAIRES
 // ============================================================
@@ -152,7 +164,38 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(openDatabaseConnection());
 
   @override
-  int get schemaVersion => 4; // incrémenté
+  MigrationStrategy get migration => MigrationStrategy(
+    onCreate: (migrator) async {
+      await migrator.createAll();
+      await customStatement('''
+        CREATE TABLE IF NOT EXISTS ecoles (
+          id_ecole INTEGER PRIMARY KEY AUTOINCREMENT,
+          nom TEXT NOT NULL, adresse TEXT, telephone TEXT, email TEXT,
+          devise TEXT NOT NULL DEFAULT 'FCFA', logo_path TEXT,
+          updated_at INTEGER NOT NULL
+        )
+      ''');
+    },
+    onUpgrade: (migrator, from, to) async {
+      if (from < 5) {
+        await customStatement('''
+          CREATE TABLE IF NOT EXISTS ecoles (
+            id_ecole INTEGER PRIMARY KEY AUTOINCREMENT,
+            nom TEXT NOT NULL,
+            adresse TEXT,
+            telephone TEXT,
+            email TEXT,
+            devise TEXT NOT NULL DEFAULT 'FCFA',
+            logo_path TEXT,
+            updated_at INTEGER NOT NULL
+          )
+        ''');
+      }
+    },
+  );
+
+  @override
+  int get schemaVersion => 5;
 }
 
 // ============================================================

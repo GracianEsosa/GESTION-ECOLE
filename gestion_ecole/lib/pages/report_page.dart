@@ -1,13 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:printing/printing.dart';
 
 import '../database/app_database.dart';
 import '../providers/annee_provider.dart';
 import '../providers/classe_provider.dart';
+import '../providers/ecole_provider.dart';
 import '../providers/inscription_provider.dart';
 import '../providers/option_provider.dart';
 import '../providers/paiement_provider.dart';
+import '../providers/tarif_frais_provider.dart';
+import '../providers/type_frais_provider.dart';
 import '../providers/utilisateur_provider.dart';
 
 class ReportPage extends ConsumerStatefulWidget {
@@ -20,6 +26,9 @@ class ReportPage extends ConsumerStatefulWidget {
 class _ReportPageState extends ConsumerState<ReportPage> {
   String? _selectedClasseUuid;
   String? _selectedOptionUuid;
+  String? _selectedEleveUuid;
+  String? _selectedAnneeUuid;
+  String? _selectedTypeFraisUuid;
   DateTime _paidFrom = DateTime.now().subtract(const Duration(days: 30));
   DateTime _paidTo = DateTime.now();
   int _activeReport = 1;
@@ -472,6 +481,9 @@ class _ReportPageState extends ConsumerState<ReportPage> {
     AsyncValue<List<ScolaireOption>> optionsAsync,
     bool isMobile,
   ) {
+    final tarifs = ref.watch(tarifsFraisListProvider).asData?.value ?? [];
+    final typesFrais = ref.watch(typesFraisListProvider).asData?.value ?? [];
+    final annees = ref.watch(anneesListProvider).asData?.value ?? [];
     return Card(
       elevation: 3,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
@@ -570,9 +582,28 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                             final matchesOption =
                                 _selectedOptionUuid == null ||
                                 item.classe.idOptionUuid == _selectedOptionUuid;
+                            final tarif = tarifs
+                                .where((t) =>
+                                    t.uuid == item.paiement.idTarifFraisUuid)
+                                .toList();
+                            final matchesAnnee =
+                                _selectedAnneeUuid == null ||
+                                item.inscription.idAnneeUuid ==
+                                    _selectedAnneeUuid;
+                            final matchesEleve =
+                                _selectedEleveUuid == null ||
+                                item.inscription.uuid == _selectedEleveUuid;
+                            final matchesType =
+                                _selectedTypeFraisUuid == null ||
+                                (tarif.isNotEmpty &&
+                                    tarif.first.idTypeFraisUuid ==
+                                        _selectedTypeFraisUuid);
                             return matchesDate &&
                                 matchesClasse &&
-                                matchesOption;
+                                matchesOption &&
+                                matchesAnnee &&
+                                matchesEleve &&
+                                matchesType;
                           })
                           .toList();
 
@@ -685,11 +716,91 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                                   },
                                 ),
                               ),
+                              SizedBox(
+                                width: isMobile ? double.infinity : 260,
+                                child: DropdownButtonFormField<String?>(
+                                  value: _selectedEleveUuid,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Élève',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  items: [
+                                    const DropdownMenuItem<String?>(
+                                      value: null,
+                                      child: Text('Tous les élèves'),
+                                    ),
+                                    ...inscriptions.map(
+                                      (eleve) => DropdownMenuItem<String?>(
+                                        value: eleve.uuid,
+                                        child: Text(
+                                          '${eleve.nomEleve} ${eleve.prenomEleve}',
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                  onChanged: (value) {
+                                    setState(() => _selectedEleveUuid = value);
+                                  },
+                                ),
+                              ),
+                              SizedBox(
+                                width: isMobile ? double.infinity : 260,
+                                child: DropdownButtonFormField<String?>(
+                                  value: _selectedAnneeUuid,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Année scolaire',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  items: [
+                                    const DropdownMenuItem<String?>(
+                                      value: null,
+                                      child: Text('Toutes les années'),
+                                    ),
+                                    ...annees.map(
+                                      (annee) => DropdownMenuItem<String?>(
+                                        value: annee.uuid,
+                                        child: Text(annee.libelleAnnee),
+                                      ),
+                                    ),
+                                  ],
+                                  onChanged: (value) {
+                                    setState(() => _selectedAnneeUuid = value);
+                                  },
+                                ),
+                              ),
+                              SizedBox(
+                                width: isMobile ? double.infinity : 260,
+                                child: DropdownButtonFormField<String?>(
+                                  value: _selectedTypeFraisUuid,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Type de frais',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  items: [
+                                    const DropdownMenuItem<String?>(
+                                      value: null,
+                                      child: Text('Tous les types de frais'),
+                                    ),
+                                    ...typesFrais.map(
+                                      (type) => DropdownMenuItem<String?>(
+                                        value: type.uuid,
+                                        child: Text(type.libelle),
+                                      ),
+                                    ),
+                                  ],
+                                  onChanged: (value) {
+                                    setState(() => _selectedTypeFraisUuid = value);
+                                  },
+                                ),
+                              ),
                               FilledButton(
                                 onPressed: () {
                                   setState(() {
                                     _selectedClasseUuid = null;
                                     _selectedOptionUuid = null;
+                                    _selectedEleveUuid = null;
+                                    _selectedAnneeUuid = null;
+                                    _selectedTypeFraisUuid = null;
                                     _paidFrom = DateTime.now().subtract(
                                       const Duration(days: 30),
                                     );
@@ -706,6 +817,22 @@ class _ReportPageState extends ConsumerState<ReportPage> {
                             style: const TextStyle(
                               fontWeight: FontWeight.w600,
                               fontSize: 15,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: OutlinedButton.icon(
+                              onPressed: filtered.isEmpty
+                                  ? null
+                                  : () => _printPaymentMovementReport(
+                                      mouvements: filtered,
+                                      tarifs: tarifs,
+                                      typesFrais: typesFrais,
+                                      annees: annees,
+                                    ),
+                              icon: const Icon(Icons.print),
+                              label: const Text('Imprimer ce rapport'),
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -788,6 +915,96 @@ class _ReportPageState extends ConsumerState<ReportPage> {
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _printPaymentMovementReport({
+    required List<_PaiementEleveInfo> mouvements,
+    required List<TarifsFrai> tarifs,
+    required List<TypesFrai> typesFrais,
+    required List<AnneeScolaire> annees,
+  }) async {
+    final ecole = await ref.read(ecoleProvider.future);
+    final nomEcole = ecole?.nom ?? 'ECOLE GESTION SCOLAIRE';
+    final document = pw.Document();
+    final total = mouvements.fold<double>(
+      0,
+      (sum, item) => sum + item.paiement.montantPaye,
+    );
+
+    String typeLabel(PaiementInscription paiement) {
+      final tarif = tarifs.where((t) => t.uuid == paiement.idTarifFraisUuid);
+      if (tarif.isEmpty) return 'Non défini';
+      final type = typesFrais.where(
+        (item) => item.uuid == tarif.first.idTypeFraisUuid,
+      );
+      return type.isEmpty ? 'Non défini' : type.first.libelle;
+    }
+
+    String anneeLabel(EleveInscription inscription) {
+      final annee = annees.where((item) => item.uuid == inscription.idAnneeUuid);
+      return annee.isEmpty ? 'Non définie' : annee.first.libelleAnnee;
+    }
+
+    document.addPage(
+      pw.MultiPage(
+        pageFormat: PdfPageFormat.a4.landscape,
+        margin: const pw.EdgeInsets.all(24),
+        build: (_) => [
+          pw.Text(
+            'RAPPORT DES MOUVEMENTS DE PAIEMENTS',
+            style: pw.TextStyle(fontSize: 18, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.Text(nomEcole, style: pw.TextStyle(fontWeight: pw.FontWeight.bold)),
+          pw.SizedBox(height: 6),
+          pw.Text('Période : ${DateFormat('dd/MM/yyyy').format(_paidFrom)} au ${DateFormat('dd/MM/yyyy').format(_paidTo)}'),
+          pw.Text('Généré le : ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}'),
+          pw.SizedBox(height: 12),
+          pw.TableHelper.fromTextArray(
+            headers: const [
+              'Date', 'Élève', 'Classe', 'Année', 'Type de frais', 'Montant', 'Mode',
+            ],
+            data: mouvements.map((item) => [
+              DateFormat('dd/MM/yyyy').format(item.paiement.datePaiement),
+              '${item.inscription.nomEleve} ${item.inscription.prenomEleve}',
+              item.classe.nomClasse,
+              anneeLabel(item.inscription),
+              typeLabel(item.paiement),
+              '${item.paiement.montantPaye.toStringAsFixed(0)} FCFA',
+              item.paiement.modePaiement,
+            ]).toList(),
+            headerStyle: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+            headerDecoration: const pw.BoxDecoration(color: PdfColors.grey300),
+            cellStyle: const pw.TextStyle(fontSize: 8),
+            cellAlignment: pw.Alignment.centerLeft,
+          ),
+          pw.SizedBox(height: 12),
+          pw.Align(
+            alignment: pw.Alignment.centerRight,
+            child: pw.Text(
+              'TOTAL ENCAISSÉ : ${total.toStringAsFixed(0)} FCFA',
+              style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted) return;
+    await Navigator.of(context).push<void>(
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          appBar: AppBar(title: const Text('Aperçu du rapport PDF')),
+          body: PdfPreview(
+            build: (_) => document.save(),
+            pdfFileName: 'rapport_mouvements_paiements.pdf',
+            canChangePageFormat: false,
+            canChangeOrientation: false,
+            allowPrinting: true,
+            allowSharing: true,
+          ),
         ),
       ),
     );
